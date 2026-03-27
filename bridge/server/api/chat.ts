@@ -3,7 +3,8 @@ import { createOpenAI } from "@ai-sdk/openai";
 
 export default defineLazyEventHandler(async () => {
   const openai = createOpenAI({
-    apiKey: useRuntimeConfig().openaiApiKey,
+    baseURL: useRuntimeConfig().llmBaseUrl,
+    apiKey: useRuntimeConfig().llmApiKey,
   });
 
   return defineEventHandler(async (event: any) => {
@@ -24,7 +25,7 @@ export default defineLazyEventHandler(async () => {
 
     // Call the language model
     const result = await streamText({
-      model: openai(useRuntimeConfig().openaiApiModel),
+      model: openai(useRuntimeConfig().llmApiModel),
       messages: convertToCoreMessages(conversationMessages),
 
       async onFinish({ text, toolCalls, toolResults, usage, finishReason }) {

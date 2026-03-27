@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    openaiApiKey: "",
+    llmApiKey: "",
     public: {
       chatApiUrl: process.env.NUXT_PUBLIC_CHAT_API_URL,
       bridgeApiUrl: process.env.NUXT_PUBLIC_BRIDGE_API_URL,

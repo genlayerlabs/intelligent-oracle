@@ -8,8 +8,9 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    openaiApiKey: process.env.NUXT_OPENAI_API_KEY,
-    openaiApiModel: process.env.NUXT_OPENAI_API_MODEL,
+    llmBaseUrl: process.env.NUXT_LLM_BASE_URL,
+    llmApiKey: process.env.NUXT_LLM_API_KEY,
+    llmApiModel: process.env.NUXT_LLM_API_MODEL,
     simulatorUrl: process.env.NUXT_SIMULATOR_ENDPOINT,
     bridgePrivateKey: process.env.NUXT_BRIDGE_PRIVATE_KEY,
     icRegistryAddress: process.env.NUXT_IC_REGISTRY_ADDRESS,

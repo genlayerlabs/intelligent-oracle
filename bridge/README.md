@@ -36,7 +36,9 @@ This project provides two core APIs that power the GenLayer Intelligent Oracle:
 3. Set up environment variables:
    Create a `.env` file in the root directory and add:
    ```
-   NUXT_OPENAI_API_KEY=your_openai_api_key_here
+   NUXT_LLM_BASE_URL=https://openrouter.ai/api/v1
+   NUXT_LLM_API_KEY=your_llm_api_key_here
+   NUXT_LLM_API_MODEL=openai/gpt-5-mini
    NUXT_BRIDGE_PRIVATE_KEY=your_bridge_api_key_here
    NUXT_SIMULATOR_ENDPOINT=simulator_endpoint_here
    NUXT_IC_REGISTRY_ADDRESS=ic_registry_address_here
