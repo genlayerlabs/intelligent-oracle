@@ -1,0 +1,24 @@
+name: "TypeScript and Vue.js Configuration"
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+paths:
+  - ui-wizard
+  - explorer
+paths-ignore:
+  - '**/node_modules'
+  - '**/dist'
+  - '**/build'
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - '**/test'
+  - '**/tests'
+  - '**/__tests__'
+
+query-filters:
+  - exclude:
+      problem.severity:
+        - note
+        - recommendation
