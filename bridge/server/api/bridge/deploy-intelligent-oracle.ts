@@ -1,7 +1,11 @@
 import { defineEventHandler, readBody } from "h3";
 import { createAccount, createClient } from "genlayer-js";
-import { simulator } from "genlayer-js/chains";
-import { Address, TransactionStatus } from "genlayer-js/types";
+import { studionet } from "genlayer-js/chains";
+import {
+  type Address,
+  type GenLayerTransaction,
+  TransactionStatus,
+} from "genlayer-js/types";
 
 interface IntelligentOracleInput {
   predictionMarketId: string;
@@ -41,18 +45,34 @@ function validateInput(input: IntelligentOracleInput): string | null {
     return "Missing resolution URLs or data source domains.";
   }
 
+  if (
+    Array.isArray(input.resolutionURLs) &&
+    Array.isArray(input.dataSourceDomains) &&
+    input.resolutionURLs.length > 0 &&
+    input.dataSourceDomains.length > 0
+  ) {
+    return "Cannot provide both resolution URLs and data source domains.";
+  }
+
   return null;
+}
+
+function extractContractAddress(receipt: GenLayerTransaction): Address | null {
+  if (receipt.txDataDecoded && "contractAddress" in receipt.txDataDecoded) {
+    return (receipt.txDataDecoded.contractAddress as Address | undefined) ?? null;
+  }
+
+  const fallback = receipt.data?.contract_address;
+  return typeof fallback === "string" ? (fallback as Address) : null;
 }
 
 export default defineEventHandler(async (event) => {
   try {
-    // Add CORS headers
     setResponseHeaders(event, {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "*",
       "Access-Control-Allow-Headers": "Content-Type",
     });
-    // Handle OPTIONS request for CORS preflight
     if (event.method === "OPTIONS") {
       return "OK";
     }
@@ -68,11 +88,10 @@ export default defineEventHandler(async (event) => {
 
     const account = createAccount(bridgePrivateKey as `0x${string}`);
     const client = createClient({
-      chain: simulator,
-      account: account, // Optional: Use this account for subsequent calls
-      endpoint: simulatorUrl,
+      chain: studionet,
+      account,
+      endpoint: simulatorUrl || undefined,
     });
-    await client.initializeConsensusSmartContract();
 
     const deploymentArgs = [
       body.predictionMarketId || "0",
@@ -98,17 +117,39 @@ export default defineEventHandler(async (event) => {
       status: TransactionStatus.FINALIZED,
     });
 
-    if (methodCallReceipt.triggered_transactions.length > 0) {
-      const intelligentOracleDeployTxHash = methodCallReceipt.triggered_transactions[0];
-      const intelligentOracleDeployReceipt = await client.waitForTransactionReceipt({
-        hash: intelligentOracleDeployTxHash,
-      });
+    const triggered = await client.getTriggeredTransactionIds({
+      hash: registerContractTransactionHash,
+    });
+
+    if (triggered.length === 0) {
       return {
-        status: "success",
-        message: "Intelligent Oracle deployed successfully",
+        status: "error",
+        message: "Registration finalized but no oracle deploy transaction was returned.",
+        receipt: methodCallReceipt,
+      };
+    }
+
+    const intelligentOracleDeployTxHash = triggered[0];
+    const intelligentOracleDeployReceipt = await client.waitForTransactionReceipt({
+      hash: intelligentOracleDeployTxHash,
+      status: TransactionStatus.ACCEPTED,
+    });
+    const oracleAddress = extractContractAddress(intelligentOracleDeployReceipt);
+
+    if (!oracleAddress) {
+      return {
+        status: "error",
+        message: "Oracle deploy transaction finalized without a contract address.",
         receipt: intelligentOracleDeployReceipt,
       };
     }
+
+    return {
+      status: "success",
+      message: "Intelligent Oracle deployed successfully",
+      oracleAddress,
+      receipt: intelligentOracleDeployReceipt,
+    };
   } catch (error) {
     console.error("Error deploying Intelligent Oracle:", error);
   }

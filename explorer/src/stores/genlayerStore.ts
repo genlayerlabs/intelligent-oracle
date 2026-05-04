@@ -1,8 +1,8 @@
 import { defineStore } from "pinia";
-import { createClient, createAccount as createGenLayerAccount, generatePrivateKey, abi } from "genlayer-js";
-import { simulator } from "genlayer-js/chains";
+import { createClient, createAccount as createGenLayerAccount, generatePrivateKey } from "genlayer-js";
+import { studionet } from "genlayer-js/chains";
 import { ref, computed, watch } from "vue";
-import { Address } from "genlayer-js/types";
+import type { Address } from "genlayer-js/types";
 
 export interface Oracle {
   title: string;
@@ -27,29 +27,29 @@ export interface Oracle {
 // - caching the oracles
 // It might be a good idea to split it into multiple stores, dependant on each other
 export const useGenlayerStore = defineStore("genlayer", () => {
-  const client = computed(() =>
-    createClient({
-      chain: simulator,
-      account: account.value,
-      endpoint: import.meta.env.VITE_SIMULATOR_RPC_URL,
-    })
-  );
-
   // Account
   const accountPrivateKey = ref(localStorage.getItem("accountPrivateKey") || null);
-
-  const account = computed(() => {
-    if (!accountPrivateKey.value) {
-      createAccount();
-    }
-    return createGenLayerAccount(accountPrivateKey.value as Address);
-  });
 
   function createAccount() {
     const newAccountPrivateKey = generatePrivateKey();
     accountPrivateKey.value = newAccountPrivateKey;
     localStorage.setItem("accountPrivateKey", newAccountPrivateKey);
   }
+
+  const account = computed(() => {
+    if (!accountPrivateKey.value) {
+      createAccount();
+    }
+    return createGenLayerAccount(accountPrivateKey.value as `0x${string}`);
+  });
+
+  const client = computed(() =>
+    createClient({
+      chain: studionet,
+      account: account.value,
+      endpoint: import.meta.env.VITE_SIMULATOR_RPC_URL || undefined,
+    })
+  );
 
   // Oracles
   const loading = ref(false);
@@ -71,17 +71,17 @@ export const useGenlayerStore = defineStore("genlayer", () => {
   });
 
   async function refreshOracles() {
-    if (loading.value) return; // Prevent multiple simultaneous refreshes
+    if (loading.value) return;
 
     loading.value = true;
     try {
       const registryContractAddress = import.meta.env.VITE_CONTRACT_ADDRESS as Address;
-      const contract_addresses: Address[] = await client.value.readContract({
+      const contract_addresses = (await client.value.readContract({
         account: account.value,
         address: registryContractAddress,
         functionName: "get_contract_addresses",
         args: [],
-      });
+      })) as Address[];
       _oracles.value = await Promise.all(contract_addresses.map((address) => fetchOracle(address)));
     } catch (error) {
       console.error("Error refreshing oracles:", error);
@@ -98,16 +98,18 @@ export const useGenlayerStore = defineStore("genlayer", () => {
         functionName: "get_dict",
         args: [],
       })
-      .then((result) => ({ ...Object.fromEntries(result), address }))
+      .then((result: any) => {
+        const entries = result instanceof Map ? Array.from(result.entries()) : Object.entries(result ?? {});
+        return { ...Object.fromEntries(entries), address };
+      })
       .catch((error) => {
         console.error("Error fetching oracle:", error);
-        return { address, error: "Error fetching oracle" };
+        return { address, error: "Error fetching oracle" } as any;
       });
     if (typeof oracle.analysis === "string" && !!oracle.analysis) {
       oracle.analysis = JSON.parse(oracle.analysis);
     }
 
-    // Update the oracle in the store if it exists
     const existingIndex = _oracles.value.findIndex((o) => o.address === address);
     if (existingIndex >= 0) {
       _oracles.value[existingIndex] = oracle as Oracle;
@@ -118,17 +120,14 @@ export const useGenlayerStore = defineStore("genlayer", () => {
     return oracle as Oracle;
   }
 
-  async function resolveOracle(address: Address, evidence: string): Promise<Oracle> {
-    console.log("resolveOracle", address);
-    return await client.value
-      .writeContract({
-        account: account.value,
-        address,
-        functionName: "resolve",
-        args: evidence ? [evidence] : [],
-        value: BigInt(0),
-      })
-      .then((result) => ({ ...result, address }));
+  async function resolveOracle(address: Address, evidence: string) {
+    return await client.value.writeContract({
+      account: account.value,
+      address,
+      functionName: "resolve",
+      args: evidence ? [evidence] : [],
+      value: BigInt(0),
+    });
   }
 
   return {

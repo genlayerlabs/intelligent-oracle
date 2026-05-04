@@ -2,53 +2,48 @@
 
 ## Overview
 
-This project implements a whitelabel AI Assistant to help your users create Intelligent Oracles for your project. The assistant guides users through a step by step process of creating a well-defined oracle specification which can be deployed on the GenLayer blockchain.
+A whitelabel AI Assistant that walks users through configuring an Intelligent Oracle and deploys it with one click via the bridge backend.
 
 ## Features
 
-- Interactive chatbot interface
-- Step-by-step configuration of Intelligent Oracles
-- Integration with OpenAI's GPT-4 for natural language processing
-- Real-time streaming of AI responses
-- Tailwind CSS for modern, responsive design
+- Interactive chat-driven oracle configuration
+- Step-by-step parameter collection (title, outcomes, rules, data sources, resolution date)
+- Real-time streaming responses (Vercel AI SDK v6, `Chat` + `DefaultChatTransport`)
+- One-click deploy + explorer link
+- Tailwind v4 + Nuxt 4
 
-## Technologies Used
+## Technologies
 
-- Vue.js 3
-- Nuxt.js 3
-- Tailwind CSS
-- OpenAI GPT-4
-- Vercel Edge Functions
+- Vue 3.5
+- Nuxt 4
+- Tailwind v4 (CSS-first config)
+- Vercel AI SDK v6 (`ai`, `@ai-sdk/vue`)
+- LLM via OpenRouter (default model: `openai/gpt-5-mini`) — provider lives in [`bridge/server/api/chat.ts`](../bridge/server/api/chat.ts)
 
 ## Setup
 
-1. Clone the repository
-2. Install dependencies:
+1. Install dependencies:
    ```
    npm install
    ```
-3. Set up environment variables:
-   Copy the `.env.example` file in the root directory to `.env` and add your own values.
-## Configuration
-
-The project uses Nuxt.js configuration. Key settings can be found in `nuxt.config.ts`.
-
-Tailwind CSS is configured in `tailwind.config.js`.
+2. Copy `.env.example` to `.env`:
+   ```
+   NUXT_PUBLIC_CHAT_API_URL=http://localhost:3000/api/chat
+   NUXT_PUBLIC_BRIDGE_API_URL=http://localhost:3000/api/bridge
+   NUXT_PUBLIC_EXPLORER_URL=http://localhost:5173
+   ```
+3. Configure design tokens in `assets/css/main.css` (Tailwind v4 `@theme` block).
 
 ## Usage
 
-1. Start the development server:
+1. Start the wizard:
    ```
    npm run dev
    ```
-2. Open your browser and navigate to `http://localhost:3000`
-3. Follow the chatbot's prompts to configure your Intelligent Oracle
-
-## API
-
-The backend of this project is implemented in the [bridge](../bridge) section of this repository. It includes the chat API and the endpoints to interact with the GenLayer blockchain to deploy and register every prediction market.
-
+2. Open `http://localhost:3001` (Nuxt avoids 3000 if bridge is already there).
+3. Follow the assistant's prompts to configure your oracle.
 
 ## Customization
 
-To modify the initial prompt or change the behavior of the chatbot, edit the [`initialPrompt` constant in `bridge/server/api/chat.ts`](../bridge/server/api/chat.ts).
+- Change the assistant's behavior or initial system prompt: edit the `initialPrompt` constant in [`bridge/server/api/chat.ts`](../bridge/server/api/chat.ts).
+- Brand colors / fonts: tweak the `@theme` tokens in `assets/css/main.css`.

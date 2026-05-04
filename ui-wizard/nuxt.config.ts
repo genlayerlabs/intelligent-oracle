@@ -1,7 +1,18 @@
+import tailwindcss from "@tailwindcss/vite";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ["@nuxtjs/tailwindcss"],
+
+  // Keep the legacy layout (`pages/`, `components/` at the project root)
+  // instead of moving everything into `app/` per Nuxt 4's new defaults.
+  srcDir: ".",
+
+  css: ["~/assets/css/main.css"],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
 
   app: {
     head: {
@@ -22,9 +33,5 @@ export default defineNuxtConfig({
     },
   },
 
-  compatibilityDate: "2024-07-05",
-
-  tailwindcss: {
-    configPath: "~/tailwind.config.js",
-  },
+  compatibilityDate: "2026-04-01",
 });

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRuntimeConfig } from "#app";
-import { useChat } from "@ai-sdk/vue";
-import { generateId } from "ai";
+import { Chat } from "@ai-sdk/vue";
+import { DefaultChatTransport, generateId, type UIMessage } from "ai";
 import { computed, ref, onMounted, nextTick, watch } from "vue";
 import confetti from "canvas-confetti";
 import Prism from "prismjs";
@@ -9,7 +9,6 @@ import "prismjs/themes/prism-tomorrow.css";
 import "prismjs/components/prism-json";
 import AppHeader from "~/components/AppHeader.vue";
 
-// Function to highlight JSON
 const highlightJson = (code: string) => {
   return Prism.highlight(code, Prism.languages.json, "json");
 };
@@ -22,15 +21,9 @@ enum DEPLOYMENT_STATUS {
 }
 
 const getDeployButtonTextFromStatus = (status: DEPLOYMENT_STATUS) => {
-  if (status === DEPLOYMENT_STATUS.DEPLOYING) {
-    return "Deploying...";
-  }
-  if (status === DEPLOYMENT_STATUS.DEPLOYED) {
-    return "Deployed";
-  }
-  if (status === DEPLOYMENT_STATUS.FAILED) {
-    return "Deployment Failed";
-  }
+  if (status === DEPLOYMENT_STATUS.DEPLOYING) return "Deploying...";
+  if (status === DEPLOYMENT_STATUS.DEPLOYED) return "Deployed";
+  if (status === DEPLOYMENT_STATUS.FAILED) return "Deployment Failed";
   return "Deploy";
 };
 
@@ -39,72 +32,101 @@ const chatInitiated = ref(false);
 const configCopied = ref(false);
 const deployedOracleAddress = ref("");
 const icDeploymentStatus = ref(DEPLOYMENT_STATUS.NONE);
-const inputRef = ref<HTMLInputElement | null>(null);
-
-// Add a ref for the messages container
+const inputRef = ref<HTMLTextAreaElement | null>(null);
 const messagesContainer = ref<HTMLDivElement | null>(null);
+const inputText = ref("");
 
-// Add a function to scroll to bottom
 const scrollToBottom = () => {
   if (messagesContainer.value) {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
   }
 };
 
-const chatId = ref<string>("");
+// Storage helpers
+type StoredUIMessage = UIMessage & { content?: string };
 
-// Add this helper function at the top level
-const getStoredMessages = () => {
-  if (typeof window !== "undefined") {
-    const savedMessages = localStorage.getItem("io-wizard.conversation");
-    return savedMessages ? JSON.parse(savedMessages) : [];
+const normalizeStoredMessage = (message: StoredUIMessage): UIMessage => {
+  if (message.parts?.length || typeof message.content !== "string") {
+    return message;
   }
-  return [];
+
+  const { content, ...rest } = message;
+  return {
+    ...rest,
+    parts: [{ type: "text", text: content }],
+  } as UIMessage;
 };
 
-const getStoredChatId = () => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("io-wizard.chatId");
+const getStoredMessages = (): UIMessage[] => {
+  if (typeof window === "undefined") return [];
+  const saved = localStorage.getItem("io-wizard.conversation");
+  if (!saved) return [];
+
+  try {
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed.map(normalizeStoredMessage) : [];
+  } catch {
+    localStorage.removeItem("io-wizard.conversation");
+    return [];
   }
-  return null;
 };
 
-const saveToStorage = (messages: any, chatId: string) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("io-wizard.conversation", JSON.stringify(messages));
-    localStorage.setItem("io-wizard.chatId", chatId);
-  }
+const getStoredChatId = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("io-wizard.chatId");
 };
 
-const { error, input, isLoading, messages, handleSubmit, reload, stop, append } = useChat({
+const saveToStorage = (messages: UIMessage[], id: string) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("io-wizard.conversation", JSON.stringify(messages));
+  localStorage.setItem("io-wizard.chatId", id);
+};
+
+const chatId = ref<string>(getStoredChatId() || generateId());
+
+// AI SDK v6: useChat is gone. Use the Chat class with a transport.
+const chat = new Chat<UIMessage>({
   id: chatId.value,
-  api: config.public.chatApiUrl as string,
-  keepLastMessageOnError: true,
-  initialMessages: getStoredMessages(),
-  onFinish() {
+  transport: new DefaultChatTransport({
+    api: config.public.chatApiUrl as string,
+  }),
+  messages: getStoredMessages(),
+  onFinish: () => {
+    saveToStorage(chat.messages, chatId.value);
     setTimeout(() => {
       inputRef.value?.focus();
       scrollToBottom();
     }, 0);
-    saveToStorage(messages.value, chatId.value);
+  },
+  onError: (error) => {
+    console.error("Chat error:", error);
   },
 });
 
-// Add watch to handle scrolling when messages change
-watch(messages, () => {
-  nextTick(() => {
-    scrollToBottom();
-  });
-});
+// Vue reactivity: chat.messages and chat.status are reactive on the instance.
+const messages = computed<UIMessage[]>(() => chat.messages);
+const status = computed(() => chat.status);
+const error = computed(() => chat.error);
+const isLoading = computed(() => status.value === "submitted" || status.value === "streaming");
+const disabled = computed(() => isLoading.value || error.value != null);
 
-// Add function to handle textarea auto-resize
+// Helper to read text content from a UI message's parts array
+const messageText = (m: UIMessage): string =>
+  (m.parts ?? [])
+    .filter((p: any) => p.type === "text")
+    .map((p: any) => p.text ?? "")
+    .join("");
+
+watch(messages, () => {
+  nextTick(scrollToBottom);
+}, { deep: true });
+
 const autoResize = (e: Event) => {
   const textarea = e.target as HTMLTextAreaElement;
   textarea.style.height = "auto";
   textarea.style.height = textarea.scrollHeight + "px";
 };
 
-// Add new handler for keydown
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
@@ -112,37 +134,25 @@ const handleKeyDown = (e: KeyboardEvent) => {
   }
 };
 
-// Modify sendMessage to remove the Enter key check since it's handled in handleKeyDown
 const sendMessage = (e: Event) => {
   e.preventDefault();
+  const text = inputText.value.trim();
+  if (!text) return;
   icDeploymentStatus.value = DEPLOYMENT_STATUS.NONE;
-  handleSubmit();
-  // Reset textarea height after sending
+  void chat.sendMessage({ text });
+  inputText.value = "";
   if (inputRef.value) {
     inputRef.value.style.height = "auto";
   }
 };
 
-const disabled = computed(() => isLoading.value || error.value != null);
-
 const startChat = () => {
-  append({
-    role: "user",
-    content: "__start__",
-    id: chatId.value,
-  });
+  void chat.sendMessage({ text: "__start__" });
 };
 
 onMounted(() => {
-  // Load or generate chat ID
-  const savedChatId = getStoredChatId();
-  chatId.value = savedChatId || generateId();
-
-  // Only start a new chat if there are no existing messages
-  if (!messages.value.length) {
-    setTimeout(() => {
-      startChat();
-    }, 1000);
+  if (!chat.messages.length) {
+    setTimeout(() => startChat(), 1000);
   }
   chatInitiated.value = true;
   setTimeout(() => {
@@ -170,9 +180,7 @@ const deployIntelligentContract = async (jsonContent: string) => {
     icDeploymentStatus.value = DEPLOYMENT_STATUS.DEPLOYING;
     const response = await fetch(`${config.public.bridgeApiUrl}/deploy-intelligent-oracle`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: jsonContent,
     });
 
@@ -186,22 +194,24 @@ const deployIntelligentContract = async (jsonContent: string) => {
       throw new Error(`Deployment failed: ${result.message}`);
     }
 
-    deployedOracleAddress.value = result.receipt.data.contract_address;
+    const oracleAddress = result.oracleAddress as string | undefined;
+    if (!oracleAddress) {
+      throw new Error("Deployment response did not include an oracle address.");
+    }
+
+    deployedOracleAddress.value = oracleAddress;
     console.log("Deployment successful:", result);
 
-    // Trigger confetti animation
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
     });
 
-    // Update button text and disable it
     icDeploymentStatus.value = DEPLOYMENT_STATUS.DEPLOYED;
   } catch (error) {
     console.error("Error deploying Intelligent Contract:", error);
     icDeploymentStatus.value = DEPLOYMENT_STATUS.FAILED;
-  } finally {
   }
 };
 
@@ -211,19 +221,14 @@ const formatMessage = (content: string) => {
 
   if (!match) {
     return {
-      formattedContent: {
-        beforeJson: content,
-        afterJson: "",
-      },
+      formattedContent: { beforeJson: content, afterJson: "" },
     };
   }
 
   try {
-    // Split content into parts before and after the JSON block
     const [beforeJson, ...afterJsonParts] = content.split(jsonRegex);
     const afterJson = afterJsonParts.slice(1).join("").trim();
 
-    // Format the content with the JSON removed
     const formattedContent = {
       beforeJson: beforeJson.trim(),
       afterJson: afterJson ? `\n${afterJson}` : "",
@@ -233,12 +238,8 @@ const formatMessage = (content: string) => {
     const formattedJson = JSON.stringify(parsedJson, null, 2);
     const highlightedJson = highlightJson(formattedJson);
 
-    return {
-      formattedContent,
-      jsonContent: parsedJson,
-      highlightedJson,
-    };
-  } catch (e) {
+    return { formattedContent, jsonContent: parsedJson, highlightedJson };
+  } catch {
     const formattedContent = {
       beforeJson: content.replace(
         jsonRegex,
@@ -246,37 +247,37 @@ const formatMessage = (content: string) => {
       ),
       afterJson: "",
     };
-    return {
-      formattedContent,
-    };
+    return { formattedContent };
   }
 };
 
 const lastJsonMessageId = computed(() => {
   for (let i = messages.value.length - 1; i >= 0; i--) {
-    if (formatMessage(messages.value[i].content).jsonContent) {
+    if (formatMessage(messageText(messages.value[i])).jsonContent) {
       return messages.value[i].id;
     }
   }
   return null;
 });
 
-// Add this new function with the other functions
 const resetConversation = () => {
-  // Clear localStorage
   if (typeof window !== "undefined") {
     localStorage.removeItem("io-wizard.conversation");
     localStorage.removeItem("io-wizard.chatId");
   }
-
-  // Reset all relevant state
-  messages.value = [];
+  chat.messages = [];
   chatId.value = generateId();
   deployedOracleAddress.value = "";
   icDeploymentStatus.value = DEPLOYMENT_STATUS.NONE;
-
-  // Start new chat
   startChat();
+};
+
+const stop = () => {
+  void chat.stop();
+};
+
+const retry = () => {
+  void chat.regenerate();
 };
 </script>
 
@@ -309,21 +310,21 @@ const resetConversation = () => {
           <span class="font-bold" :class="{ 'text-highlight': m.role !== 'user' }">{{
             m.role === "user" ? "You: " : "Intelligent Oracle Assistant: "
           }}</span>
-          <span v-html="formatMessage(m.content).formattedContent.beforeJson"></span>
-          <div v-if="formatMessage(m.content).jsonContent" class="json-viewer-wrapper">
-            <pre><code class="language-json" v-html="formatMessage(m.content).highlightedJson"></code></pre>
+          <span v-html="formatMessage(messageText(m)).formattedContent.beforeJson"></span>
+          <div v-if="formatMessage(messageText(m)).jsonContent" class="json-viewer-wrapper">
+            <pre><code class="language-json" v-html="formatMessage(messageText(m)).highlightedJson"></code></pre>
           </div>
-          <span v-html="formatMessage(m.content).formattedContent.afterJson"></span>
+          <span v-html="formatMessage(messageText(m)).formattedContent.afterJson"></span>
           <div v-if="m.id === lastJsonMessageId" class="flex flex-col gap-2 mt-4">
             <div class="flex gap-2">
               <button
-                @click="copyToClipboard(JSON.stringify(formatMessage(m.content).jsonContent, null, 2))"
+                @click="copyToClipboard(JSON.stringify(formatMessage(messageText(m)).jsonContent, null, 2))"
                 class="px-4 py-2 border border-highlight rounded hover:bg-highlight hover:text-white transition-colors text-highlight"
               >
                 {{ configCopied ? "Copied!" : "Copy to Clipboard" }}
               </button>
               <button
-                @click="deployIntelligentContract(JSON.stringify(formatMessage(m.content).jsonContent))"
+                @click="deployIntelligentContract(JSON.stringify(formatMessage(messageText(m)).jsonContent))"
                 :disabled="
                   icDeploymentStatus === DEPLOYMENT_STATUS.DEPLOYING ||
                   icDeploymentStatus === DEPLOYMENT_STATUS.DEPLOYED
@@ -380,7 +381,7 @@ const resetConversation = () => {
           <button
             type="button"
             class="px-4 py-2 mt-4 text-highlight border border-highlight rounded hover:bg-highlight hover:text-white transition-colors"
-            @click="() => reload()"
+            @click="retry"
           >
             Retry
           </button>
@@ -394,7 +395,7 @@ const resetConversation = () => {
             <textarea
               ref="inputRef"
               class="flex-1 p-4 border border-highlight rounded shadow-xl bg-background text-primary-text placeholder-secondary-text resize-none overflow-hidden"
-              v-model="input"
+              v-model="inputText"
               placeholder="Say something..."
               :disabled="disabled"
               @keydown.enter="handleKeyDown"
@@ -465,26 +466,22 @@ code {
   word-break: break-all;
 }
 
-/* Light mode overrides */
 @media (prefers-color-scheme: light) {
   .json-viewer-wrapper pre {
     background-color: #f5f5f5;
   }
 }
 
-/* Hide scrollbar but maintain scroll functionality */
 .overflow-y-auto {
   scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* WebKit browsers (Chrome, Safari) */
 .overflow-y-auto::-webkit-scrollbar {
   display: none;
 }
 
-/* Add styles for textarea auto-resize */
 textarea {
   min-height: 44px;
   max-height: 200px;

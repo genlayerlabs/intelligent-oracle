@@ -1,17 +1,18 @@
 # { "Depends": "py-genlayer:test" }
 
 from genlayer import *
+import genlayer.gl as gl
 
 
-@gl.contract
-class Registry:
-    # Declare persistent storage fields
+class Registry(gl.Contract):
+    # Persistent storage fields
     contract_addresses: DynArray[str]
     intelligent_oracle_code: str
 
-    def __init__(self):
-        with open("/contract/IntelligentOracle.py", "rt") as f:
-            self.intelligent_oracle_code = f.read()
+    def __init__(self, intelligent_oracle_code: str):
+        if not intelligent_oracle_code:
+            raise gl.vm.UserError("Missing Intelligent Oracle contract code.")
+        self.intelligent_oracle_code = intelligent_oracle_code
 
     @gl.public.write
     def create_new_prediction_market(
@@ -40,8 +41,6 @@ class Registry:
             ],
             salt_nonce=registered_contracts + 1,
         )
-        print("contract_address", contract_address)
-        print("contract_address type", type(contract_address))
         self.contract_addresses.append(contract_address.as_hex)
 
     @gl.public.view

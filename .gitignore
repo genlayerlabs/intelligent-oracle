@@ -1,6 +1,3 @@
-# Docker volumes
-.simulator-postgres
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -162,17 +159,30 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Node
-explorer/node_modules
-
-# Nuxt dev/build outputs
-.output
-.nuxt
-.vercel
-.nitro
-
 # Node dependencies
-node_modules
+node_modules/
+
+# Build outputs and framework caches
+dist/
+.output/
+.nuxt/
+.nitro/
+.vercel/
+.vite/
+
+# Package manager noise
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+.pnpm-store/
+
+# Lockfile policy: this repo uses npm per module, so package-lock.json files
+# are intentionally tracked. Ignore lockfiles from package managers we no
+# longer use to avoid accidental churn.
+pnpm-lock.yaml
+yarn.lock
 
 # Misc
 .DS_Store

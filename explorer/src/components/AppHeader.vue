@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { RouterLink } from "vue-router";
 
 interface HeaderLink {
   label: string;
@@ -9,7 +8,7 @@ interface HeaderLink {
 }
 
 interface Props {
-  explorerUrl: string;
+  explorerUrl?: string;
   chatUrl?: string;
 }
 

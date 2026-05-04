@@ -1,21 +1,23 @@
 # { "Depends": "py-genlayer:test" }
 
 import json
-from enum import Enum
-from datetime import datetime, timezone
+import re
+from datetime import datetime
 from urllib.parse import urlparse
+
 from genlayer import *
+import genlayer.gl as gl
 
 
-class Status(Enum):
-    ACTIVE = "Active"
-    RESOLVED = "Resolved"
-    ERROR = "Error"
+# Stored as plain strings on chain because Enum payloads are not natively
+# encoded in GenVM storage.
+_STATUS_ACTIVE = "Active"
+_STATUS_RESOLVED = "Resolved"
+_STATUS_ERROR = "Error"
 
 
-@gl.contract
-class IntelligentOracle:
-    # Declare persistent storage fields
+class IntelligentOracle(gl.Contract):
+    # Persistent storage fields
     prediction_market_id: str
     title: str
     description: str
@@ -23,9 +25,9 @@ class IntelligentOracle:
     rules: DynArray[str]
     data_source_domains: DynArray[str]
     resolution_urls: DynArray[str]
-    earliest_resolution_date: str  # Store as ISO format string
-    status: str  # Store as string since Enum isn't supported
-    analysis: str  # Store analysis results
+    earliest_resolution_date: str  # ISO 8601 string
+    status: str
+    analysis: str
     outcome: str
     creator: Address
 
@@ -48,21 +50,21 @@ class IntelligentOracle:
             or not rules
             or not earliest_resolution_date
         ):
-            raise ValueError("Missing required fields.")
+            raise gl.vm.UserError("Missing required fields.")
 
         if not resolution_urls and not data_source_domains:
-            raise ValueError("Missing resolution URLs or data source domains.")
+            raise gl.vm.UserError("Missing resolution URLs or data source domains.")
 
         if len(resolution_urls) > 0 and len(data_source_domains) > 0:
-            raise ValueError(
+            raise gl.vm.UserError(
                 "Cannot provide both resolution URLs and data source domains."
             )
 
         if len(potential_outcomes) < 2:
-            raise ValueError("At least two potential outcomes are required.")
+            raise gl.vm.UserError("At least two potential outcomes are required.")
 
         if len(potential_outcomes) != len(set(potential_outcomes)):
-            raise ValueError("Potential outcomes must be unique.")
+            raise gl.vm.UserError("Potential outcomes must be unique.")
 
         self.prediction_market_id = prediction_market_id
         self.title = title
@@ -87,10 +89,9 @@ class IntelligentOracle:
             self.resolution_urls.append(url.strip())
 
         self.earliest_resolution_date = earliest_resolution_date
-        self.status = Status.ACTIVE.value
-
+        self.status = _STATUS_ACTIVE
         self.outcome = ""
-        self.creator = gl.message.sender_account
+        self.creator = gl.message.sender_address
 
     @gl.public.view
     def _check_evidence_domain(self, evidence: str) -> bool:
@@ -103,34 +104,33 @@ class IntelligentOracle:
 
     @gl.public.write
     def resolve(self, evidence_url: str = "") -> None:
-        if self.status == Status.RESOLVED.value:
-            raise ValueError("Cannot resolve an already resolved oracle.")
+        if self.status == _STATUS_RESOLVED:
+            raise gl.vm.UserError("Cannot resolve an already resolved oracle.")
 
-        current_time = datetime.now().astimezone().date()
-        earliest_time = datetime.fromisoformat(self.earliest_resolution_date).date()
-        if current_time < earliest_time:
-            raise ValueError("Cannot resolve before the earliest resolution date.")
+        current_date = datetime.now().astimezone().date()
+        earliest_date = datetime.fromisoformat(self.earliest_resolution_date).date()
+        if current_date < earliest_date:
+            raise gl.vm.UserError("Cannot resolve before the earliest resolution date.")
 
         if len(self.resolution_urls) > 0 and evidence_url:
-            raise ValueError(
+            raise gl.vm.UserError(
                 "An evidence URL was provided but the oracle is configured to use resolution URLs already provided."
             )
 
         if len(self.resolution_urls) == 0 and not evidence_url:
-            raise ValueError(
+            raise gl.vm.UserError(
                 "No evidence URL provided and the oracle is not configured to use resolution URLs."
             )
 
         if evidence_url:
-            is_valid = self._check_evidence_domain(evidence_url)
-            if not is_valid:
-                raise ValueError(
+            if not self._check_evidence_domain(evidence_url):
+                raise gl.vm.UserError(
                     "The evidence URL does not match any of the data source domains."
                 )
 
         analyzed_outputs = []
         resources_to_check = (
-            self.resolution_urls if len(self.resolution_urls) > 0 else [evidence_url]
+            list(self.resolution_urls) if len(self.resolution_urls) > 0 else [evidence_url]
         )
 
         title = self.title
@@ -142,12 +142,12 @@ class IntelligentOracle:
         for resource_url in resources_to_check:
 
             def evaluate_single_source() -> str:
-                resource_web_data = gl.get_webpage(resource_url, mode="text")
-                print(resource_web_data)
+                response_body = gl.nondet.web.get(resource_url).body or b""
+                resource_web_data = response_body.decode("utf-8", errors="replace")
 
                 task = f"""
-You are an AI Validator tasked with resolving a prediction market. 
-Your goal is to determine the correct outcome based on the user-defined rules, 
+You are an AI Validator tasked with resolving a prediction market.
+Your goal is to determine the correct outcome based on the user-defined rules,
 the provided webpage HTML content, the resolution date, and the list of potential outcomes.
 
 ### Inputs
@@ -183,136 +183,95 @@ the provided webpage HTML content, the resolution date, and the list of potentia
 {earliest_resolution_date}
 </earliest_resolution_date>
 
+### Your Task
+1. Analyze the inputs.
+2. Provide reasoning that references rules and extracted data.
+3. Determine the outcome:
+   - Use one of the listed potential outcomes when possible.
+   - Use `UNDETERMINED` if the information is insufficient or the event has not occurred.
+   - Use `ERROR` if the determined outcome is not in the list.
 
+### Output Format
+Provide a valid JSON object with this exact structure:
 
-
-### **Your Task:**
-1. **Analyze the Inputs:**
-- Carefully read and interpret the user-defined rules.
-- Parse the HTML content to extract meaningful information relevant to the rules.
-- Determine if the source pertains to the event that is being predicted.
-- Determine if the event has occurred yet.
-
-2. **Provide Reasoning:**
-- Write a clear, self-contained reasoning for the outcome.
-- Reference specific parts of the rules and the extracted data that support your decision.
-- Ensure that someone reading the reasoning can understand it without needing additional information.
-
-3. **Determine The Outcome:**
-- Based on your analysis, decide which potential outcome is correct.
-- If an outcome can be determined, but the outcome is not in the list of potential outcomes, the outcome should be `ERROR`.
-- If the information is insufficient or inconclusive, or the event has not occurred yet, and you cannot confidently determine an outcome based on this source, the outcome should be `UNDETERMINED`.
-
-
-
-
-### **Output Format:**
-
-Provide your response in **valid JSON** format with the following structure:
-
-```json
 {{
     "valid_source": "true | false",
     "event_has_occurred": "true | false",
     "reasoning": "Your detailed reasoning here",
-    "outcome": "Chosen outcome from the potential outcomes list, `UNDETERMINED` if no outcome can be determined based on this source, `ERROR` if the outcome is not in the potential outcomes list"                
+    "outcome": "Chosen outcome from the potential outcomes list, `UNDETERMINED`, or `ERROR`"
 }}
-```
 
-### **Constraints and Considerations:**
+### Constraints
+- Be accurate and objective.
+- Output must be valid JSON without trailing commas.
+"""
+                return gl.nondet.exec_prompt(task)
 
-- **Accuracy:** Base your decision strictly on the provided inputs.
-- **Objectivity:** Remain neutral and unbiased.
-- **Clarity:** Make sure your reasoning is easy to understand.
-- **Validity:** Ensure the JSON output is properly formatted and free of errors. Do not include trailing commas.
-                """
-                result = gl.exec_prompt(task)
-                print(result)
-                return result
-
-            result = gl.eq_principle_prompt_comparative(
+            result = gl.eq_principle.prompt_comparative(
                 evaluate_single_source,
                 principle="`outcome` field must be exactly the same. All other fields must be similar",
             )
 
-            result_dict = _parse_json_dict(result)
-            analyzed_outputs.append((resource_url, result_dict))
+            analyzed_outputs.append((resource_url, _parse_json_dict(result)))
 
         def evaluate_all_sources() -> str:
             task = f"""
-    You are an AI Validator tasked with resolving a prediction market Oracle. Your goal is to determine 
-    the correct outcome based on processed data from all of the individial data sources. Here are your inputs
+You are an AI Validator tasked with resolving a prediction market Oracle. Your goal is to determine
+the correct outcome based on processed data from each individual data source.
 
-    ### Inputs
-    <title>
-    {title}
-    </title>
+### Inputs
+<title>
+{title}
+</title>
 
-    <description>
-    {description}
-    </description>
+<description>
+{description}
+</description>
 
-    <potential_outcomes>
-    {potential_outcomes}
-    </potential_outcomes>
+<potential_outcomes>
+{potential_outcomes}
+</potential_outcomes>
 
-    <rules>
-    {rules}
-    </rules>
+<rules>
+{rules}
+</rules>
 
-    <processed_data>
-    {analyzed_outputs}
-    </processed_data>
+<processed_data>
+{analyzed_outputs}
+</processed_data>
 
-    <current_date>
-    {datetime.now().astimezone()}
-    </current_date>
+<current_date>
+{datetime.now().astimezone()}
+</current_date>
 
-    <earliest_resolution_date>
-    {earliest_resolution_date}
-    </earliest_resolution_date>
+<earliest_resolution_date>
+{earliest_resolution_date}
+</earliest_resolution_date>
 
-    ### **Your Task:**
-    1. **Analyze the Inputs:**
-    - Carefully read and interpret the user-defined rules.
-    - Take into account all the processed data form the sources.
-    - Consider the resolution date in your analysis to ensure timeliness of the data.
+### Your Task
+1. Analyze the inputs and consider the resolution date.
+2. Determine the outcome from the processed data:
+   - One of the listed potential outcomes when possible.
+   - `UNDETERMINED` if the information is insufficient or inconclusive.
+   - `ERROR` if the determined outcome is not in the list.
+   - If sources contradict, refer to the rules. If rules don't resolve it, use `ERROR`.
 
-    2. **Determine The Outcome:**
-    - The output should be determined from the processed data form the resolution sources.
-    - Based on your analysis, decide which potential outcome is correct.
-    - If an outcome can be determined, but the outcome is not in the list of potential outcomes, the outcome should be `ERROR`.
-    - If the information is insufficient or inconclusive, and you cannot confidently determine an outcome, the outcome should be `UNDETERMINED`.
-    - Your response should reflect a coherent summary outcome from the previous analysis.
-    - If multiple sources contradict each other, refer to the rules to determine how to resolve the contradiction.
-    - If the rules do not provide a clear resolution, the outcome should be `ERROR`.
+### Output Format
+Valid JSON only:
 
-    ### **Output Format:**
-
-    Provide your response in **valid JSON** format with the following structure:
-
-    ```json
-    {{
-    "relevant_sources": "List of URLs that are relevant to the outcome",
+{{
+    "relevant_sources": ["..."],
     "reasoning": "Your detailed reasoning here",
-    "outcome": "Chosen outcome from the potential outcomes list, `UNDETERMINED` if undetermined, `ERROR` if the outcome is not in the potential outcomes list"        
-    }}
-    ```
+    "outcome": "Chosen outcome from the potential outcomes list, `UNDETERMINED`, or `ERROR`"
+}}
 
-    ### **Constraints and Considerations:**
+### Constraints
+- Be accurate, objective, and clear.
+- JSON must be valid (no trailing commas).
+"""
+            return gl.nondet.exec_prompt(task)
 
-    - **Accuracy:** Base your decision strictly on the provided inputs.
-    - **Objectivity:** Remain neutral and unbiased.
-    - **Clarity:** Make sure your reason is easy to understand.
-    - **Validity:** Ensure the JSON output is properly formatted and free of errors. Do not include trailing commas.
-
-            """
-
-            result = gl.exec_prompt(task)
-            print(result)
-            return result
-
-        result = gl.eq_principle_prompt_comparative(
+        result = gl.eq_principle.prompt_comparative(
             evaluate_all_sources,
             principle="`outcome` field must be exactly the same. All other fields must be similar",
         )
@@ -320,23 +279,22 @@ Provide your response in **valid JSON** format with the following structure:
         result_dict = _parse_json_dict(result)
         self.analysis = json.dumps(result_dict)
 
-        if result_dict["outcome"] == "UNDETERMINED":
+        if result_dict.get("outcome") == "UNDETERMINED":
             return
 
         if (
-            result_dict["outcome"] == "ERROR"
-            or result_dict["outcome"] not in self.potential_outcomes
+            result_dict.get("outcome") == "ERROR"
+            or result_dict.get("outcome") not in self.potential_outcomes
         ):
-            self.status = Status.ERROR.value
+            self.status = _STATUS_ERROR
             return
 
         self.outcome = result_dict["outcome"]
-        self.status = Status.RESOLVED.value
+        self.status = _STATUS_RESOLVED
 
     @gl.public.view
-    def get_dict(self) -> dict[str, str]:
+    def get_dict(self) -> dict:
         return {
-            # "creator": self.creator,
             "title": self.title,
             "description": self.description,
             "potential_outcomes": list(self.potential_outcomes),
@@ -357,17 +315,17 @@ Provide your response in **valid JSON** format with the following structure:
 
 def _parse_json_dict(json_str: str) -> dict:
     """
-    Used to sanitize the JSON output from the LLM.
-    Remove everything before the first '{' and after the last '}', and remove trailing commas before closing braces/brackets
+    Sanitize JSON output from the LLM:
+    - keep only the substring between the first `{` and the last `}`
+    - remove trailing commas before closing braces/brackets
     """
+    if isinstance(json_str, dict):
+        return json_str
+
     first_brace = json_str.find("{")
     last_brace = json_str.rfind("}")
+    if first_brace == -1 or last_brace == -1:
+        return {}
     json_str = json_str[first_brace : last_brace + 1]
-
-    # Remove trailing commas before closing braces/brackets
-    import re
-
     json_str = re.sub(r",(?!\s*?[\{\[\"\'\w])", "", json_str)
-    print(json_str)
-
     return json.loads(json_str)

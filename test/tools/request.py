@@ -24,10 +24,13 @@ def payload(function_name: str, *args) -> dict:
 
 def post_request(
     payload: dict,
-    protocol: str = os.environ["RPCPROTOCOL"],
-    host: str = os.environ["RPCHOST"],
-    port: str = os.environ["RPCPORT"],
+    protocol: str | None = None,
+    host: str | None = None,
+    port: str | None = None,
 ):
+    protocol = protocol or os.environ.get("RPCPROTOCOL", "http")
+    host = host or os.environ.get("RPCHOST", "127.0.0.1")
+    port = port or os.environ.get("RPCPORT", "4000")
     return requests.post(
         protocol + "://" + host + ":" + port + "/api",
         data=json.dumps(payload),
@@ -95,9 +98,11 @@ def send_transaction(
 
 
 def deploy_intelligent_contract(
-    account: Account, contract_code: str, method_args: list
+    account: Account, contract_code: str | bytes, method_args: list
 ) -> tuple[str, dict]:
     nonce = get_transaction_count(account.address)
+    if isinstance(contract_code, str):
+        contract_code = contract_code.encode("utf-8")
     deploy_data = [
         contract_code,
         calldata.encode({"method": "__init__", "args": method_args}),
@@ -112,6 +117,8 @@ def send_raw_transaction(signed_transaction: str):
     payload_data = payload("eth_sendRawTransaction", signed_transaction)
     raw_response = post_request_localhost(payload_data)
     call_method_response = raw_response.json()
+    if "error" in call_method_response:
+        raise RuntimeError(call_method_response["error"])
     transaction_hash = call_method_response["result"]
 
     transaction_response = wait_for_transaction(transaction_hash)

@@ -9,17 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "genlayer-js": "^0.6.4",
-    "lucide-vue-next": "^0.446.0",
-    "pinia": "^2.2.4",
-    "vue": "^3.4.37",
-    "vue-router": "^4.4.5"
+    "genlayer-js": "^1.1.7",
+    "lucide-vue-next": "^1.0.0",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.33",
+    "vue-router": "^5.0.6"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.1.2",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.13",
-    "vite": "^5.4.10"
+    "@tailwindcss/vite": "^4.2.4",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "tailwindcss": "^4.2.4",
+    "vite": "^8.0.10"
   }
 }

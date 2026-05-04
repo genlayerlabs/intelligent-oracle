@@ -34,7 +34,7 @@
                   <dt class="text-sm font-medium text-secondary-text">Outcome</dt>
                   <dd class="mt-1 text-sm text-primary-text sm:mt-0 sm:col-span-2">{{ oracle.outcome || 'Not yet determined' }}</dd>
                 </div>
-                
+
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt class="text-sm font-medium text-secondary-text">Description</dt>
                   <dd class="mt-1 text-sm text-primary-text sm:mt-0 sm:col-span-2">{{ oracle.description }}</dd>
@@ -78,10 +78,6 @@
                   <dt class="text-sm font-medium text-secondary-text">Earliest Resolution Date</dt>
                   <dd class="mt-1 text-sm text-primary-text sm:mt-0 sm:col-span-2">{{ formatDate(oracle.earliest_resolution_date) }}</dd>
                 </div>
-                <!-- <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt class="text-sm font-medium text-secondary-text">Prediction Market ID</dt>
-                  <dd class="mt-1 text-sm text-primary-text sm:mt-0 sm:col-span-2">{{ oracle.prediction_market_id }}</dd>
-                </div> -->
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt class="text-sm font-medium text-secondary-text">Analysis</dt>
                   <dd class="mt-1 text-sm text-primary-text sm:mt-0 sm:col-span-2">
@@ -100,16 +96,16 @@
               <h3 class="text-lg leading-6 font-medium text-primary-text">Transactions</h3>
             </div>
             <div class="p-4 space-y-4">
-              <div v-for="tx in transactions" 
-                   :key="tx.hash" 
-                   class="bg-gray-100 shadow rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" 
+              <div v-for="tx in transactions"
+                   :key="tx.hash"
+                   class="bg-gray-100 shadow rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                    @click="openTransactionModal(tx)"
               >
                 <div class="flex items-center justify-between mb-2">
                   <p class="text-sm font-medium text-highlight truncate max-w-[70%]">
                     {{ tx.hash }}
                   </p>
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-medium" 
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-medium"
                         :class="tx.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
                   >
                     {{ tx.status }}
@@ -117,13 +113,13 @@
                 </div>
                 <div class="space-y-2">
                   <p class="text-sm text-secondary-text">Created at: {{ formatDate(tx.created_at) }}</p>
-                  <p class="text-sm text-secondary-text">Type: {{ tx.data.contract_address ? "Deploy" : "Resolution" }}</p>
+                  <p class="text-sm text-secondary-text">Type: {{ tx.data?.contract_address ? "Deploy" : "Resolution" }}</p>
                   <div v-if="tx.status !== 'PENDING'" class="pt-2">
                     <h4 class="text-sm font-medium text-primary-text mb-1">Validators and Votes:</h4>
-                    <template v-if="tx.consensus_data && Object.entries(tx.consensus_data.votes).length > 0">
+                    <template v-if="tx.consensus_data?.votes && Object.entries(tx.consensus_data.votes).length > 0">
                       <ul class="space-y-1">
-                        <li v-for="validator in Object.entries(tx.consensus_data.votes)" 
-                            :key="validator[0]" 
+                        <li v-for="validator in Object.entries(tx.consensus_data.votes)"
+                            :key="validator[0]"
                             class="text-sm text-secondary-text"
                         >
                           {{ validator[0] }}: {{ tx.consensus_data.votes[validator[0]] || 'No vote' }}
@@ -150,16 +146,16 @@
       <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white" @click.stop>
         <div class="mt-3">
           <h3 class="text-lg leading-6 font-medium text-primary-text mb-6">Transaction Details</h3>
-          
+
           <!-- General Information -->
           <div class="mb-6">
             <h4 class="text-md font-semibold mb-3">General Information</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded">
               <div>
-                <p class="text-sm mb-1"><span class="font-medium">Type:</span> {{ selectedTransactionObject.data?.contract_address ? "Deploy" : "Resolution" }}</p>
-                <p class="text-sm mb-1"><span class="font-medium">Status:</span> {{ selectedTransactionObject.status }}</p>
-                <p class="text-sm mb-1"><span class="font-medium">Appealed:</span> {{ selectedTransactionObject.appealed ? 'Yes' : 'No' }}</p>
-                <p class="text-sm mb-1"><span class="font-medium">Created At:</span> {{ new Date(selectedTransactionObject.created_at).toLocaleString() }}</p>
+                <p class="text-sm mb-1"><span class="font-medium">Type:</span> {{ selectedTransactionObject?.data?.contract_address ? "Deploy" : "Resolution" }}</p>
+                <p class="text-sm mb-1"><span class="font-medium">Status:</span> {{ selectedTransactionObject?.status }}</p>
+                <p class="text-sm mb-1"><span class="font-medium">Appealed:</span> {{ selectedTransactionObject?.appealed ? 'Yes' : 'No' }}</p>
+                <p class="text-sm mb-1"><span class="font-medium">Created At:</span> {{ selectedTransactionObject?.created_at ? new Date(selectedTransactionObject.created_at).toLocaleString() : '' }}</p>
               </div>
               <div>
                 <p class="text-sm"><span class="font-medium">Calldata:</span></p>
@@ -180,26 +176,26 @@
           <div class="mb-6">
             <h4 class="text-md font-semibold mb-3">Leader's Execution</h4>
             <div class="bg-gray-50 p-4 rounded">
-              <p class="text-sm mb-2"><span class="font-medium">Address:</span> {{ selectedTransactionObject.consensus_data?.leader_receipt?.node_config?.address }}</p>
-              <p class="text-sm mb-2"><span class="font-medium">Execution Result: </span> 
+              <p class="text-sm mb-2"><span class="font-medium">Address:</span> {{ leaderReceipt?.node_config?.address }}</p>
+              <p class="text-sm mb-2"><span class="font-medium">Execution Result: </span>
                 <span :class="{
-                    'text-green-600': selectedTransactionObject.consensus_data?.leader_receipt?.execution_result === 'SUCCESS',
-                    'text-red-600': selectedTransactionObject.consensus_data?.leader_receipt?.execution_result === 'ERROR'
-                  }">{{ selectedTransactionObject.consensus_data?.leader_receipt?.execution_result }}</span>
+                    'text-green-600': leaderReceipt?.execution_result === 'SUCCESS',
+                    'text-red-600': leaderReceipt?.execution_result === 'ERROR'
+                  }">{{ leaderReceipt?.execution_result }}</span>
               </p>
-              <div class="mt-3" v-if="selectedTransactionObject.consensus_data?.leader_receipt?.eq_outputs['0']">
+              <div class="mt-3" v-if="leaderReceipt?.eq_outputs && Object.keys(leaderReceipt.eq_outputs).length > 0">
                 <p class="text-sm font-medium mb-1">EQ Outputs:</p>
-                <div v-for="(output, key) in selectedTransactionObject.consensus_data?.leader_receipt?.eq_outputs" :key="key" 
+                <div v-for="(output, key) in leaderReceipt.eq_outputs" :key="key"
                      class="bg-gray-200 p-2 rounded mb-4">
                   <div class="text-sm space-y-2">
-                    <template v-if="parseEqOutput(decodeBase64(output))">
-                      <div v-for="(value, key) in parseEqOutput(decodeBase64(output))" :key="key"
+                    <template v-if="parseEqOutput(decodeBase64(String(output)))">
+                      <div v-for="(value, k) in parseEqOutput(decodeBase64(String(output)))" :key="k"
                            class="border-b border-gray-200 last:border-0 pb-2 last:pb-0">
-                        <span class="font-medium capitalize">{{ formatKey(key) }}:</span>
+                        <span class="font-medium capitalize">{{ formatKey(String(k)) }}:</span>
                         <p class="mt-1 pl-4 text-gray-600">{{ value }}</p>
                       </div>
                     </template>
-                    <p v-else class="break-all">{{ decodeBase64(output) }}</p>
+                    <p v-else class="break-all">{{ decodeBase64(String(output)) }}</p>
                   </div>
                 </div>
               </div>
@@ -210,10 +206,10 @@
           <div class="mb-6">
             <h4 class="text-md font-semibold mb-3">Validators</h4>
             <div class="space-y-4">
-              <div v-for="validator in selectedTransactionObject.consensus_data?.validators" :key="validator.node_config.address" 
+              <div v-for="validator in selectedTransactionObject?.consensus_data?.validators" :key="validator.node_config.address"
                    class="bg-gray-50 p-4 rounded">
                 <p class="text-sm mb-2"><span class="font-medium">Address:</span> {{ validator.node_config.address }}</p>
-                <p class="text-sm mb-2"><span class="font-medium">Vote: </span> 
+                <p class="text-sm mb-2"><span class="font-medium">Vote: </span>
                   <span :class="{
                     'text-green-600': validator.vote === 'agree',
                     'text-red-600': validator.vote === 'disagree'
@@ -228,7 +224,7 @@
           <div class="mb-6">
             <h4 class="text-md font-semibold mb-3">Node Configurations</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div v-for="participant in [...[selectedTransactionObject?.consensus_data?.leader_receipt], ...selectedTransactionObject?.consensus_data?.validators]"
+              <div v-for="participant in nodeConfigParticipants"
                    :key="participant.node_config.address"
                    class="bg-gray-50 p-4 rounded">
                 <p class="text-sm font-medium mb-1">{{ participant.mode === 'leader' ? 'Leader' : 'Validator' }}</p>
@@ -299,70 +295,59 @@ import { Oracle, useGenlayerStore } from '../stores/genlayerStore';
 
 import Address from './Address.vue';
 import { onMounted, ref, computed, onUnmounted } from 'vue';
-import { Address as AddressType } from 'genlayer-js/types';
+import type { Address as AddressType } from 'genlayer-js/types';
 
 const route = useRoute();
 const genlayerStore = useGenlayerStore();
 const oracle = ref<Oracle>();
 
+// Loose Transaction shape — `sim_getTransactionsForAddress` payload still
+// varies between studio versions, so most fields are typed as optional/any.
+// The new GenLayer SDK exposes `consensus_data.leader_receipt` as an array.
+interface LeaderReceiptShape {
+  args?: any;
+  class_name?: string;
+  contract_state?: string;
+  eq_outputs?: Record<string, string>;
+  error?: string | null;
+  execution_result?: string;
+  gas_used?: number;
+  method?: string;
+  mode?: string;
+  node_config?: {
+    address?: string;
+    config?: Record<string, unknown>;
+    model?: string;
+    plugin?: string;
+    plugin_config?: Record<string, unknown>;
+    provider?: string;
+    stake?: number;
+  };
+  vote?: string;
+}
+
 interface Transaction {
-  consensus_data: {
-    final: boolean;
-    validators: {
-      address: string;
-      // Add other validator properties if needed
-    }[];
-    votes: {
-      [key: string]: string;
-    };
-    leader_receipt: {
-      args: string[][];
-      class_name: string;
-      contract_state: string;
-      eq_outputs: {
-        leader: {
-          [key: string]: string;
-        };
-      };
-      error: string | null;
-      execution_result: string;
-      gas_used: number;
-      method: string;
-      mode: string;
-      node_config: {
-        address: string;
-        config: Record<string, unknown>;
-        model: string;
-        plugin: string;
-        plugin_config: {
-          api_key_env_var: string;
-          api_url: string | null;
-        };
-        provider: string;
-        stake: number;
-      };
-      vote: string;
-    };
+  consensus_data?: {
+    final?: boolean;
+    validators?: Array<{
+      node_config: { address: string };
+      vote?: string;
+      execution_result?: string;
+    }>;
+    votes?: Record<string, string>;
+    leader_receipt?: LeaderReceiptShape | LeaderReceiptShape[];
   };
-  created_at: string;
-  data: {
-    function_args: string;
-    function_name: string;
+  created_at?: string;
+  data?: {
+    function_args?: string;
+    function_name?: string;
+    contract_address?: string;
+    calldata?: string;
   };
-  from_address: string;
-  gaslimit: number;
-  hash: string;
-  leader_only: boolean;
-  nonce: number;
-  r: string | null;
-  s: string | null;
-  status: string;
-  to_address: string;
-  triggered_by: string | null;
-  triggered_transactions: any[];
-  type: number;
-  v: string | null;
-  value: number;
+  from_address?: string;
+  hash?: string;
+  status?: string;
+  appealed?: boolean;
 }
 
 const transactions = ref<Transaction[]>([]);
@@ -386,20 +371,22 @@ onUnmounted(() => {
   }
 });
 
-async function  loadOracle() {
+async function loadOracle() {
   oracle.value = (await genlayerStore.oracles).find(oracle => oracle.address === route.params.address);
-  transactions.value = await genlayerStore.client.request( // TODO: fix typing and explore alternatives to sim_getTransactionsForAddress, since it's not a GenLayer method (could be problematic when going to mainnet)
-    {
+  try {
+    transactions.value = (await genlayerStore.client.request({
       method: "sim_getTransactionsForAddress",
-      params: [route.params.address]
-    }
-  )
+      params: [route.params.address as string],
+    } as any)) as Transaction[];
+  } catch (e) {
+    console.warn("sim_getTransactionsForAddress unavailable on this network", e);
+    transactions.value = [];
+  }
   if (oracle.value?.status === "Resolved") {
     clearInterval(refreshInterval.value);
   }
 }
 
-// Add refresh function
 async function refreshOracle() {
   await genlayerStore.fetchOracle(route.params.address as AddressType);
   await loadOracle();
@@ -411,7 +398,7 @@ async function resolveOracle() {
   await closeResolutionModal();
 }
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | undefined) => {
   if (!dateString) return 'Not specified';
   const date = new Date(dateString);
   return date.toLocaleDateString(undefined, {
@@ -445,34 +432,53 @@ function closeResolutionModal() {
   resolutionEvidence.value = "";
 }
 
-const getSelectedTransactionObject = () => {
+// Normalize leader_receipt — old simulator returned an object, new SDK returns an array.
+function normalizeLeaderReceipt(
+  raw: LeaderReceiptShape | LeaderReceiptShape[] | undefined
+): LeaderReceiptShape | undefined {
+  if (!raw) return undefined;
+  return Array.isArray(raw) ? raw[0] : raw;
+}
+
+const leaderReceipt = computed<LeaderReceiptShape | undefined>(() =>
+  normalizeLeaderReceipt(selectedTransaction.value?.consensus_data?.leader_receipt)
+);
+
+const selectedTransactionObject = computed(() => {
   if (!selectedTransaction.value) return null;
   return {
     ...selectedTransaction.value,
-    consensus_data: {
-      ...selectedTransaction.value.consensus_data,
-      leader_receipt: selectedTransaction.value.consensus_data?.leader_receipt ? {
-        ...selectedTransaction.value.consensus_data.leader_receipt,
-        eq_outputs: selectedTransaction.value.consensus_data.leader_receipt.eq_outputs
-      } : undefined,
-      validators: selectedTransaction.value.consensus_data?.validators.map((validator: any) => ({
-        ...validator,
-        eq_outputs: undefined,
-        // contract_state: `${validator.contract_state.slice(0,10)}...${validator.contract_state.slice(-10)}`,
-      })),
-    },
+    consensus_data: selectedTransaction.value.consensus_data
+      ? {
+          ...selectedTransaction.value.consensus_data,
+          leader_receipt: leaderReceipt.value,
+          validators: selectedTransaction.value.consensus_data.validators?.map((validator: any) => ({
+            ...validator,
+            eq_outputs: undefined,
+          })),
+        }
+      : undefined,
+  };
+});
+
+const nodeConfigParticipants = computed(() => {
+  const out: Array<{
+    mode?: string;
+    node_config: { address?: string; provider?: string; model?: string; stake?: number };
+  }> = [];
+  if (leaderReceipt.value?.node_config) {
+    out.push({ mode: 'leader', node_config: leaderReceipt.value.node_config });
   }
-}
+  for (const v of selectedTransaction.value?.consensus_data?.validators ?? []) {
+    out.push({ mode: 'validator', node_config: v.node_config });
+  }
+  return out;
+});
 
 const prettyJson = computed(() => {
-  if (!selectedTransaction.value) return '';
-  return JSON.stringify(getSelectedTransactionObject(), null, 2);
+  if (!selectedTransactionObject.value) return '';
+  return JSON.stringify(selectedTransactionObject.value, null, 2);
 });
-
-const selectedTransactionObject = computed(() => {
-  return getSelectedTransactionObject();
-});
-  
 
 function copyToClipboard() {
   if (selectedTransaction.value) {
@@ -487,55 +493,42 @@ function copyToClipboard() {
   }
 }
 
-// Add this helper function
 const decodeBase64 = (encodedString?: string) => {
   if (!encodedString || typeof window === 'undefined') {
     return '';
   }
-  return window.atob(encodedString);
+  try {
+    return window.atob(encodedString);
+  } catch {
+    return encodedString;
+  }
 };
 
-// Add this computed property after other computed properties
 const decodedCalldata = computed(() => {
-  const rawCalldata = decodeBase64(selectedTransactionObject?.value?.data?.calldata);
+  const rawCalldata = decodeBase64(selectedTransactionObject.value?.data?.calldata);
   if (!rawCalldata) return null;
 
   try {
-    // Split the string at 'method<' to separate args and method
     const parts = rawCalldata.split('method<');
-    
-    // Get args by removing the 'argsì' prefix and control characters
     const args = parts[0]
-      .replace('args', '') // Remove the prefix
-      .replace('ì', '') // Remove the prefix
-      .replace(/[\x00-\x1F\x7F-\xFF]/g, '') // Remove all control characters
+      .replace('args', '')
+      .replace('ì', '')
+      .replace(/[\x00-\x1F\x7F-\xFF]/g, '')
       .trim();
-    
-    // Get method by removing the closing bracket if it exists
     const method = parts[1]?.replace('>', '') || 'Constructor';
-
-    return {
-      method,
-      args,
-    };
+    return { method, args };
   } catch (error) {
     console.error('Error parsing calldata:', error);
     return null;
   }
 });
 
-// Add these helper functions
 function cleanJsonString(str: string): string {
-  // Remove markdown code block markers and any surrounding whitespace
   str = str.replace(/^```\w*\s*|\s*```$/g, '');
-  
-  // If the string starts with a '{', assume it's JSON and clean it
   if (str.includes('{')) {
-    // Extract just the JSON part
     const jsonMatch = str.match(/{[\s\S]*}/);
     return jsonMatch ? jsonMatch[0] : str;
   }
-  
   return str;
 }
 
@@ -543,14 +536,12 @@ function parseEqOutput(output: string): Record<string, any> | null {
   try {
     const cleanedOutput = cleanJsonString(output);
     return JSON.parse(cleanedOutput);
-  } catch (error) {
-    console.error('Error parsing EQ output:', error);
+  } catch {
     return null;
   }
 }
 
 function formatKey(key: string): string {
-  // Convert camelCase or snake_case to Title Case with spaces
   return key
     .replace(/_/g, ' ')
     .replace(/([A-Z])/g, ' $1')
