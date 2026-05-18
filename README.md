@@ -1,87 +1,80 @@
-# Intelligent Oracle System
+# Giliri Oracle Workspace
 
-A complete system for deploying and managing AI-powered oracles on the GenLayer blockchain. This system enables the creation and resolution of prediction markets using natural language processing and web data analysis.
+A reference app for creating and monitoring oracle markets. The UI and API runtime are a single Next.js App Router application backed by GenLayer intelligent contracts.
 
 ## Prerequisites
 
-Before running this project, ensure you have:
+1. Node.js 20.9+ and npm 10+
+2. Python 3.12+ for contract tests
+3. GenLayer CLI:
+   ```bash
+   npm install -g genlayer
+   genlayer network set studionet
+   ```
 
-1. [GenLayer Studio](https://github.com/yeagerai/genlayer-simulator) installed and running locally
-   - Docker 26+
-   - Node.js 18+
-   - Install with: `npm install -g genlayer`
-   - Start with: `genlayer init --branch v0.21.1`
+The hosted Studio network (`https://studio.genlayer.com/api`) is the default. For local development with a validator network, run `genlayer init` and set the GenLayer RPC env vars to `http://localhost:4000/api`.
 
-## Project Components
+## Components
 
-### 1. Intelligent Oracle Contracts
-Located in [`/contracts`](/contracts)
-- Intelligent Oracle contract for prediction market resolution
-- Registry contract for managing deployed oracles
-- Supports flexible data sources, multiple outcomes, and rule-based resolution
+- `src/app` — Next.js App Router UI and route handlers
+  - `/` — assistant-driven oracle configuration wizard
+  - `/explorer` — oracle registry explorer
+  - `/oracle/[address]` — oracle detail, transaction inspection, and resolution
+  - `/api/chat` — OpenRouter-backed AI SDK streaming chat
+- `intelligent-contracts/` — GenLayer Python contracts
+- `scripts/` — separate npm package for factory deployment scripts; kept outside the root app because it has deployment-specific env and side effects
+- `test/` — Python E2E tests and seed helpers
 
-### 2. Bridge & Chat API
-Located in [`/bridge`](/bridge)
-- Handles oracle deployment to GenLayer blockchain
-- Provides Chat API integration with OpenAI's GPT models
+## Environment
 
-### 3. Configuration Wizard UI
-Located in [`/ui-wizard`](/ui-wizard)
-- Interactive chatbot interface for oracle configuration
-- Step-by-step guidance through setup process
-- Real-time AI assistance using GPT-4
+Copy `.env.example` to `.env` and fill in:
 
-### 4. Explorer Interface
-Located in [`/explorer`](/explorer) 
-- Simple dashboard for viewing deployed oracles
-- Monitor oracle status and outcomes
-- View market details and resolution data
-
-## Getting Started
-
-1. Start GenLayer Studio:
 ```bash
-genlayer up
+OPENROUTER_API_KEY=...
+OPENROUTER_MODEL=openai/gpt-5-mini
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+
+NEXT_PUBLIC_GENLAYER_RPC_URL=https://studio.genlayer.com/api
+NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS=0x...
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...
+
+# Legacy fallback during migration
+NEXT_PUBLIC_IC_REGISTRY_ADDRESS=0x...
 ```
 
-2. Spin up the project:
+`OPENROUTER_*` values are server-only. GenLayer reads and writes in the app use browser-visible `NEXT_PUBLIC_*` values, and write transactions are signed by the connected wallet.
+
+## Development
+
 ```bash
-docker-compose up --build
+npm install
+npm run dev
+
+# Deploy the factory, when intentionally changing infrastructure
+cd scripts && npm install && cp .env.example .env && npm run deploy
+
+# Contract linting
+genvm-lint check intelligent-contracts/IntelligentOracle.py
+genvm-lint check intelligent-contracts/IntelligentOracleFactory.py
+
+# Tests
+npm run check
+
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r test/requirements.txt
+python -m pytest test/
 ```
 
-3. Run tests:
-```bash
-# Activate your Python virtual environment first
-pip install -r test/requirements.txt
-pytest test/
-```
+`npm run check` runs lint, TypeScript, unit tests, and the production Next.js build for the root UI/API app. The `scripts/` package is installed and run separately only when intentionally changing deployed infrastructure.
 
-## Common Pitfalls
+## Tech Stack
 
-- The `VITE_CONTRACT_ADDRESS` environment variable is set at startup and requires explorer container restart to update
-- Contract registration currently needs manual handling through the `seed.py` script
-- Factory pattern implementation is limited due to current Simulator constraints
-
-## TODO List
-
-- [ ] Implement appeals functionality (blocked by simulator development)
-- [ ] Implement prodction market resolution via Bridge
-- [ ] Add data source submission interface
-- [ ] Implement factory pattern for Intelligent Oracle contract deployment
-
-## Architecture
-
-```
-├── contracts/         # Smart contracts implementation
-├── bridge/           # Backend API & blockchain integration
-├── ui-wizard/        # Configuration wizard frontend
-├── explorer/         # Oracle monitoring interface
-└── test/            # E2E and contract tests
-```
-
-## Contributing
-
-Contributions are welcome! Please check the individual component READMEs for specific development guidelines.
+- Next.js 16 App Router, React 19, TypeScript
+- Tailwind CSS v4
+- Vercel AI SDK v6 with `@ai-sdk/react` and `@openrouter/ai-sdk-provider`
+- `genlayer-js` 1.x
+- GenVM Python intelligent contracts
 
 ## License
 

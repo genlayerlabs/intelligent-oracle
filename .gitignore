@@ -1,6 +1,3 @@
-# Docker volumes
-.simulator-postgres
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -17,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -41,6 +38,7 @@ pip-delete-this-directory.txt
 
 # Unit test / coverage reports
 htmlcov/
+test-results/
 .tox/
 .nox/
 .coverage
@@ -137,6 +135,7 @@ ENV/
 env.bak/
 venv.bak/
 .data
+.context/
 
 # Spyder project settings
 .spyderproject
@@ -162,19 +161,34 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Node
-explorer/node_modules
-
-# Nuxt dev/build outputs
-.output
-.nuxt
-.vercel
-.nitro
-
 # Node dependencies
-node_modules
+node_modules/
+*.tsbuildinfo
+
+# Build outputs and framework caches
+dist/
+.next/
+.output/
+.nuxt/
+.nitro/
+.vercel/
+.vite/
+
+# Package manager noise
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+.pnpm-store/
+
+# Lockfile policy: ignore package manager lockfiles to avoid accidental churn.
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
 
 # Misc
 .DS_Store
 .fleet
 .idea
+.gstack/

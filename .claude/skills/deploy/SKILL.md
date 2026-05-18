@@ -7,7 +7,7 @@ disable-model-invocation: true
 Deploy contracts using the scripts module. Accepts optional arguments via $ARGUMENTS.
 
 ```bash
-cd /Users/edgars/Dev/intelligent-oracle/scripts && npm run deploy $ARGUMENTS
+cd scripts && npm run deploy $ARGUMENTS
 ```
 
 Before deploying:
