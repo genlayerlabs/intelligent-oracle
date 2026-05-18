@@ -104,7 +104,7 @@ export function ExplorerPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
-              <Link href="/">
+              <Link href="/assistant">
                 <Plus className="size-4" aria-hidden />
                 Create oracle
               </Link>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Web3Provider } from "@/components/web3-provider";
 import { switzer } from "@/lib/fonts";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
@@ -20,9 +19,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className={switzer.variable} suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <Web3Provider>
-            <TooltipProvider>{children}</TooltipProvider>
-          </Web3Provider>
+          <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

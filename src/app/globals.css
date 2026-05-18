@@ -165,3 +165,18 @@ pre {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.brand-navy-bloom {
+  background-color: var(--brand-navy);
+  background-image:
+    radial-gradient(
+      ellipse 65% 55% at 85% 12%,
+      color-mix(in oklab, var(--brand-lavender) 32%, transparent),
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 55% 60% at 12% 88%,
+      color-mix(in oklab, var(--brand-pink) 20%, transparent),
+      transparent 60%
+    );
+}

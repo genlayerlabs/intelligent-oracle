@@ -17,9 +17,11 @@ The hosted Studio network (`https://studio.genlayer.com/api`) is the default. Fo
 ## Components
 
 - `src/app` — Next.js App Router UI and route handlers
-  - `/` — assistant-driven oracle configuration wizard
+  - `/` — branded Intelligent Oracle landing page
+  - `/assistant` — assistant-driven oracle configuration wizard
   - `/explorer` — oracle registry explorer
   - `/oracle/[address]` — oracle detail, transaction inspection, and resolution
+  - `/docs` — current single-page app and contract guide
   - `/api/chat` — OpenRouter-backed AI SDK streaming chat
 - `intelligent-contracts/` — GenLayer Python contracts
 - `scripts/` — separate npm package for factory deployment scripts; kept outside the root app because it has deployment-specific env and side effects

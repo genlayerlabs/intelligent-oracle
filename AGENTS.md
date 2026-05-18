@@ -8,10 +8,12 @@ This repo is a single root Next.js App Router application for creating and monit
 
 - `src/app` contains pages and route handlers:
   - `/`
+  - `/assistant`
   - `/explorer`
   - `/oracle/[address]`
+  - `/docs`
   - `/api/chat`
-- `src/components` contains React UI components for the wizard and explorer.
+- `src/components` contains React UI components for the public landing/docs pages, wizard, and explorer.
 - `src/lib` contains shared validation, AI message parsing, GenLayer client hooks, transaction normalization, and display helpers.
 - `intelligent-contracts/` contains GenLayer Python contracts.
 - `scripts/` is a separate npm package for factory deployment. Keep it separate from root app commands unless the user explicitly wants to deploy.

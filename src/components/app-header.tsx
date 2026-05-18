@@ -33,7 +33,7 @@ export function AppHeader({ active, oracleAddress }: AppHeaderProps) {
         </Link>
         <nav className="flex min-w-0 justify-self-end rounded-md border border-border bg-card p-1 text-sm shadow-sm">
           <Link
-            href="/"
+            href="/assistant"
             className={cn(
               "rounded px-2 py-1.5 transition sm:px-3",
               active === "assistant"
@@ -53,6 +53,12 @@ export function AppHeader({ active, oracleAddress }: AppHeaderProps) {
             )}
           >
             Explorer
+          </Link>
+          <Link
+            href="/docs"
+            className="rounded px-2 py-1.5 text-muted-foreground transition hover:text-foreground sm:px-3"
+          >
+            Docs
           </Link>
         </nav>
         <div className="flex items-center gap-1.5 justify-self-end sm:gap-2">
