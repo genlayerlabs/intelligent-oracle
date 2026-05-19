@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Link from "next/link";
-import { ArrowRight, ChevronDown, ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
+import { AgentQuickstartTabs } from "@/components/marketing/agent-quickstart-tabs";
 import { DocsCodeBlock } from "@/components/marketing/docs-code-block";
 import { PublicFooter, PublicHeader } from "@/components/marketing/public-shell";
-import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -79,47 +78,11 @@ export default function DocsPage() {
           <p className="mt-7 text-xl font-light leading-9 text-black/65">
             This is a reference UI for GenLayer&apos;s intelligent oracles. Draft a prediction market in plain English, sign it from your wallet, and let validator consensus resolve it against live web evidence. Use it as-is, or fork the repo and ship your own.
           </p>
-          <p className="mt-6 inline-block rounded-full bg-white/60 px-4 py-2 text-sm italic text-black/55">
-            e.g.{" "}
-            <span className="not-italic text-black/75">
-              &ldquo;Will it snow in NYC on Dec 25?&rdquo;
-            </span>{" "}
-            &mdash; wallet-signed and live in under a minute.
-          </p>
         </section>
 
-        {/* PRIMARY PATH — TRY */}
+        {/* PRIMARY PATH — Human / Agent tabs */}
         <section className="mt-10 md:mt-12">
-          <article className="group relative isolate overflow-hidden bg-[color:color-mix(in_oklab,var(--brand-lavender)_10%,transparent)] p-10 md:p-14">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100 [background-image:var(--gradient-brand)]"
-            />
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100 mix-blend-overlay [background:radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.55),transparent_60%)]"
-            />
-            <div className="transition-colors duration-500 group-hover:text-white">
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-black/45 transition-colors duration-500 group-hover:text-white/80">
-                Try it now
-              </p>
-              <h2 className="mt-3 max-w-2xl text-[clamp(2rem,4vw,3.5rem)] font-light leading-tight">
-                Draft your first market in plain English
-              </h2>
-              <p className="mt-5 max-w-2xl text-lg font-light leading-8 text-black/65 transition-colors duration-500 group-hover:text-white/85">
-                Open the assistant and describe a market that can be settled by public web evidence. You&apos;ll review the outcomes, rules, sources, and resolution date before signing anything.
-              </p>
-              <Button
-                asChild
-                className="mt-8 h-12 bg-black px-7 text-white transition-colors duration-500 group-hover:bg-white group-hover:text-black"
-              >
-                <Link href="/assistant">
-                  Open the Assistant
-                  <ArrowRight className="size-4" aria-hidden />
-                </Link>
-              </Button>
-            </div>
-          </article>
+          <AgentQuickstartTabs />
         </section>
 
         {/* SECONDARY PATH — FORK */}
