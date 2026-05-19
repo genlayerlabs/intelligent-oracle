@@ -101,6 +101,7 @@ If any of these change, update the GenLayer hooks, deploy script, and Python tes
 ## Local Guidance
 
 - Prefer existing patterns in `src/lib` and `src/components`.
+- Keep `/docs` as the branded Get Started page: try-it first, fork/deploy next, then compact reference sections.
 - Use Zod schemas for user/API boundary validation.
 - Keep route handlers in `src/app/api/**/route.ts`.
 - Keep UI client behavior in client components.

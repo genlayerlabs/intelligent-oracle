@@ -9,6 +9,7 @@ GenLayer Intelligent Oracle system — a single Next.js application for creating
 ## Module Structure
 
 - `src/app` — Next.js App Router UI and route handlers, including `/`, `/assistant`, `/explorer`, `/oracle/[address]`, `/docs`, and `/api/chat`.
+- `/docs` — branded Get Started page: try the hosted assistant first, then fork/deploy steps, then compact reference details.
 - `src/components` — React UI components for the public landing/docs pages, assistant wizard, and explorer.
 - `src/lib` — shared validation, AI message parsing, GenLayer hooks, and display helpers.
 - `intelligent-contracts/` — GenLayer Python contracts using `gl.Contract`, `gl.eq_principle.prompt_comparative`, `gl.nondet.web.render` (mode=text, wait_after_loaded=10s) for HTML sources, and `gl.nondet.exec_prompt`.

@@ -180,3 +180,59 @@ pre {
       transparent 60%
     );
 }
+
+.brand-app-shell {
+  background: #f1f0f3;
+  color: #2e2e2e;
+}
+
+.dark .brand-app-shell {
+  background-color: #0a0a14;
+  background-image:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand-navy) 30%, transparent), transparent 22rem),
+    radial-gradient(
+      ellipse 70% 55% at 82% 8%,
+      color-mix(in oklab, var(--brand-lavender) 20%, transparent),
+      transparent 62%
+    );
+  color: #f5f5fa;
+}
+
+.brand-surface {
+  border: 1px solid rgb(0 0 0 / 10%);
+  background: rgb(255 255 255 / 68%);
+  box-shadow: none;
+}
+
+.dark .brand-surface {
+  border-color: rgb(255 255 255 / 12%);
+  background: rgb(20 20 31 / 74%);
+}
+
+.brand-surface-solid {
+  border: 1px solid rgb(0 0 0 / 10%);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.dark .brand-surface-solid {
+  border-color: rgb(255 255 255 / 12%);
+  background: #14141f;
+}
+
+.brand-icon-frame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgb(0 0 0 / 12%);
+  background: rgb(255 255 255 / 70%);
+  color: #2e2e2e;
+}
+
+.dark .brand-icon-frame {
+  border-color: rgb(255 255 255 / 16%);
+  background: rgb(255 255 255 / 7%);
+  color: #ffffff;
+}

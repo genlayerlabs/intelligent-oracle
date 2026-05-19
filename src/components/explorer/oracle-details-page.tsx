@@ -13,6 +13,8 @@ import {
 } from "@/components/ai-elements/code-block";
 import { AddressText } from "@/components/address";
 import { AppHeader } from "@/components/app-header";
+import { BrandMark } from "@/components/brand/brand-mark";
+import { WaveDecoration } from "@/components/brand/wave-decoration";
 import { ResolutionSummaryPanel } from "@/components/oracle/resolution-summary";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -190,31 +192,48 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="brand-app-shell relative isolate min-h-screen overflow-hidden text-[#2e2e2e] dark:text-white">
       <AppHeader active="explorer" />
 
-      <main className="mx-auto w-full min-w-0 max-w-7xl px-4 pb-10 pt-24 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-5 border-b border-border pb-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <div className="mb-3">
-              {oracle?.status ? <StatusBadge status={oracle.status} /> : null}
+      <WaveDecoration
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 top-20 -z-10 h-80 w-full opacity-45 [mask-image:linear-gradient(to_bottom,black,transparent)] dark:opacity-20"
+      />
+
+      <main className="relative z-10 mx-auto w-[90%] min-w-0 max-w-[1300px] pb-12 pt-28">
+        <header className="brand-surface relative isolate overflow-hidden rounded-md p-6 md:p-8">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-1 bg-[image:var(--gradient-brand)]"
+          />
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0">
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <span className="brand-icon-frame">
+                  <BrandMark className="size-4" />
+                </span>
+                <span className="text-xs font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">
+                  Oracle details
+                </span>
+                {oracle?.status ? <StatusBadge status={oracle.status} /> : null}
+              </div>
+              <h1 className="break-words text-[clamp(2rem,5vw,4.5rem)] font-light leading-none tracking-normal text-black dark:text-white">
+                {oracle?.title || "Oracle details"}
+              </h1>
+              <p className="mt-4 break-all font-mono text-xs text-black/55 dark:text-white/55 sm:text-sm">
+                <AddressText address={address} showFull />
+              </p>
             </div>
-            <h1 className="break-words text-2xl font-semibold text-foreground">
-              {oracle?.title || "Oracle details"}
-            </h1>
-            <p className="mt-2 break-all font-mono text-sm text-muted-foreground">
-              <AddressText address={address} showFull />
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => void refreshOracle()} disabled={!ready || loading}>
-              {loading ? <Spinner /> : <RefreshCw className="size-4" aria-hidden />}
-              Refresh
-            </Button>
-            <Button type="button" onClick={openResolution} disabled={!oracle || resolving}>
-              {resolving ? <Spinner /> : <Rocket className="size-4" aria-hidden />}
-              {resolving ? "Resolving" : "Initiate resolution"}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" onClick={() => void refreshOracle()} disabled={!ready || loading} className="border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
+                {loading ? <Spinner /> : <RefreshCw className="size-4" aria-hidden />}
+                Refresh
+              </Button>
+              <Button type="button" onClick={openResolution} disabled={!oracle || resolving} className="bg-black text-white hover:bg-[color:var(--brand-lavender)] dark:bg-white dark:text-black dark:hover:bg-[color:var(--brand-lavender)] dark:hover:text-white">
+                {resolving ? <Spinner /> : <Rocket className="size-4" aria-hidden />}
+                {resolving ? "Resolving" : "Initiate resolution"}
+              </Button>
+            </div>
           </div>
         </header>
 
@@ -231,7 +250,7 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
         ) : null}
 
         {!oracle ? (
-          <div className="mt-6 flex min-h-72 items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm text-muted-foreground">
+          <div className="brand-surface mt-6 flex min-h-72 items-center justify-center gap-2 rounded-md text-sm text-black/55 dark:text-white/55">
             {ready ? (
               <>
                 <Spinner />
@@ -239,7 +258,7 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
               </>
             ) : (
               <div className="max-w-md text-center">
-                <p className="font-medium text-foreground">Factory configuration required</p>
+                <p className="font-medium text-black dark:text-white">Factory configuration required</p>
                 <p className="mt-1">
                   Configure the factory address to load oracle details.
                 </p>
@@ -255,12 +274,13 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
             ) : null}
 
           <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-            <section className="rounded-lg border border-border bg-card shadow-sm">
-              <div className="border-b border-border p-5">
-                <h2 className="text-lg font-semibold">Market</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{oracle.description || "No description"}</p>
+            <section className="brand-surface overflow-hidden rounded-md">
+              <div className="border-b border-black/10 bg-white/55 p-5 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">Market</p>
+                <h2 className="mt-1 text-2xl font-light text-black dark:text-white">Definition</h2>
+                <p className="mt-3 text-sm leading-6 text-black/60 dark:text-white/60">{oracle.description || "No description"}</p>
               </div>
-              <dl className="divide-y divide-border">
+              <dl className="divide-y divide-black/10 dark:divide-white/10">
                 <DetailRow label="Outcome" value={oracle.outcome || "Not yet determined"} />
                 <DetailList label="Potential outcomes" values={oracle.potential_outcomes} />
                 <DetailList label="Rules" values={oracle.rules} />
@@ -280,16 +300,17 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
               </dl>
             </section>
 
-            <section className="rounded-lg border border-border bg-card shadow-sm">
-              <div className="flex items-center justify-between gap-3 border-b border-border p-5">
+            <section className="brand-surface overflow-hidden rounded-md">
+              <div className="flex items-center justify-between gap-3 border-b border-black/10 bg-white/55 p-5 dark:border-white/10 dark:bg-white/5">
                 <div>
-                  <h2 className="text-lg font-semibold">Transactions</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{transactions.length} records</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">Consensus</p>
+                  <h2 className="mt-1 text-2xl font-light text-black dark:text-white">Transactions</h2>
+                  <p className="mt-1 text-sm text-black/55 dark:text-white/55">{transactions.length} records</p>
                 </div>
               </div>
               <div className="max-h-[calc(100vh-16rem)] overflow-y-auto p-3">
                 {transactions.length === 0 ? (
-                  <p className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
+                  <p className="rounded-md border border-dashed border-black/15 bg-white/45 p-5 text-sm text-black/55 dark:border-white/15 dark:bg-white/5 dark:text-white/55">
                     No transactions found for this oracle.
                   </p>
                 ) : null}
@@ -302,16 +323,16 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
                         setSelectedTransaction(tx);
                         setTransactionTab("overview");
                       }}
-                      className="block w-full rounded-md border border-border bg-background p-4 text-left transition hover:border-primary/30 hover:bg-primary/5"
+                      className="block w-full rounded-md border border-black/10 bg-white/60 p-4 text-left transition hover:border-[color:var(--brand-lavender)]/45 hover:bg-[color:color-mix(in_oklab,var(--brand-lavender)_8%,white)] dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/10"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="truncate font-mono text-sm font-medium text-primary">{transactionId(tx)}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{transactionType(tx)} transaction</p>
+                          <p className="truncate font-mono text-sm font-medium text-[color:var(--brand-blue)] dark:text-white">{transactionId(tx)}</p>
+                          <p className="mt-1 text-xs text-black/55 dark:text-white/55">{transactionType(tx)} transaction</p>
                         </div>
                         <StatusBadge status={String(tx.statusName || tx.status || "Unknown")} />
                       </div>
-                      <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+                      <div className="mt-3 grid gap-2 text-xs text-black/50 dark:text-white/50 sm:grid-cols-2">
                         <span>{formatDate(tx.created_at || tx.createdTimestamp)}</span>
                         <span>{tx.consensus_data?.votes ? `${Object.keys(tx.consensus_data.votes).length} votes` : "Leader execution"}</span>
                       </div>
@@ -355,10 +376,10 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
             </div>
           ) : null}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setResolutionOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setResolutionOpen(false)} className="border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
               Cancel
             </Button>
-            <Button type="button" onClick={() => void submitResolution(resolutionEvidence)} disabled={resolving || !resolutionEvidence.trim()}>
+            <Button type="button" onClick={() => void submitResolution(resolutionEvidence)} disabled={resolving || !resolutionEvidence.trim()} className="bg-black text-white hover:bg-[color:var(--brand-lavender)] dark:bg-white dark:text-black dark:hover:bg-[color:var(--brand-lavender)] dark:hover:text-white">
               {resolving ? <Spinner /> : <ExternalLink className="size-4" aria-hidden />}
               Submit resolution
             </Button>
@@ -409,14 +430,14 @@ function TransactionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-wrap gap-1 rounded-md border border-border bg-muted p-1">
+        <div className="flex flex-wrap gap-1 rounded-md border border-black/10 bg-black/5 p-1 dark:border-white/10 dark:bg-white/5">
           {(["overview", "consensus", "validators", "raw"] as TransactionTab[]).map((item) => (
             <button
               key={item}
               type="button"
               onClick={() => onTabChange(item)}
               className={`h-8 rounded px-3 text-sm capitalize transition ${
-                tab === item ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                tab === item ? "bg-black text-white dark:bg-white dark:text-black" : "text-black/55 hover:text-black dark:text-white/55 dark:hover:text-white"
               }`}
             >
               {item}
@@ -431,7 +452,7 @@ function TransactionDialog({
               <InfoBlock label="Status" value={String(selectedTransactionObject?.statusName || selectedTransactionObject?.status || "Unknown")} />
               <InfoBlock label="Created" value={formatDate(selectedTransactionObject?.created_at || selectedTransactionObject?.createdTimestamp)} />
               <InfoBlock label="Appealed" value={selectedTransactionObject?.appealed ? "Yes" : "No"} />
-              <div className="rounded-md border border-border p-4 md:col-span-2">
+              <div className="rounded-md border border-black/10 bg-white/50 p-4 dark:border-white/10 dark:bg-white/5 md:col-span-2">
                 <p className="text-sm font-medium">Calldata</p>
                 {decodedCalldata ? (
                   <div className="mt-3 space-y-2 text-sm">
@@ -449,10 +470,10 @@ function TransactionDialog({
 
           {tab === "consensus" ? (
             <div className="space-y-4">
-              <div className="rounded-md border border-border p-4 text-sm">
-                <p><span className="text-muted-foreground">Leader:</span> {String(leaderReceipt?.node_config?.address || "Unknown")}</p>
-                <p className="mt-1"><span className="text-muted-foreground">Execution:</span> {leaderReceipt?.execution_result || "Unknown"}</p>
-                <p className="mt-1"><span className="text-muted-foreground">Vote:</span> {leaderReceipt?.vote || "No vote"}</p>
+              <div className="rounded-md border border-black/10 bg-white/50 p-4 text-sm dark:border-white/10 dark:bg-white/5">
+                <p><span className="text-black/55 dark:text-white/55">Leader:</span> {String(leaderReceipt?.node_config?.address || "Unknown")}</p>
+                <p className="mt-1"><span className="text-black/55 dark:text-white/55">Execution:</span> {leaderReceipt?.execution_result || "Unknown"}</p>
+                <p className="mt-1"><span className="text-black/55 dark:text-white/55">Vote:</span> {leaderReceipt?.vote || "No vote"}</p>
               </div>
               <EqOutputs outputs={leaderReceipt?.eq_outputs} />
             </div>
@@ -464,11 +485,11 @@ function TransactionDialog({
                 <p className="text-sm text-muted-foreground">No participants available.</p>
               ) : null}
               {participants.map((participant, index) => (
-                <div key={`${participant.mode}-${participant.node_config.address || index}`} className="rounded-md border border-border p-4 text-sm">
+                <div key={`${participant.mode}-${participant.node_config.address || index}`} className="rounded-md border border-black/10 bg-white/50 p-4 text-sm dark:border-white/10 dark:bg-white/5">
                   <p className="font-medium capitalize">{participant.mode}</p>
-                  <p className="mt-2 break-all"><span className="text-muted-foreground">Address:</span> {participant.node_config.address || "Unknown"}</p>
-                  <p className="mt-1"><span className="text-muted-foreground">Vote:</span> {participant.vote || "No vote"}</p>
-                  <p className="mt-1"><span className="text-muted-foreground">Execution:</span> {participant.execution_result || "Unknown"}</p>
+                  <p className="mt-2 break-all"><span className="text-black/55 dark:text-white/55">Address:</span> {participant.node_config.address || "Unknown"}</p>
+                  <p className="mt-1"><span className="text-black/55 dark:text-white/55">Vote:</span> {participant.vote || "No vote"}</p>
+                  <p className="mt-1"><span className="text-black/55 dark:text-white/55">Execution:</span> {participant.execution_result || "Unknown"}</p>
                 </div>
               ))}
             </div>
@@ -488,7 +509,7 @@ function TransactionDialog({
 
         <DialogFooter>
           {transaction ? (
-            <Button type="button" variant="outline" onClick={() => void onCopy(transaction)}>
+            <Button type="button" variant="outline" onClick={() => void onCopy(transaction)} className="border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
               <Copy className="size-4" aria-hidden />
               {copyStatus || "Copy raw"}
             </Button>
@@ -515,7 +536,7 @@ function EqOutputs({ outputs }: { outputs?: Record<string, unknown> | unknown[] 
         const decoded = decodeBase64(String(output));
         const parsed = parseEqOutput(decoded);
         return (
-          <div key={key} className="rounded-md border border-border p-4 text-sm">
+          <div key={key} className="rounded-md border border-black/10 bg-white/50 p-4 text-sm dark:border-white/10 dark:bg-white/5">
             <p className="mb-3 font-medium">{formatKey(key)}</p>
             {parsed ? (
               <div className="space-y-2">
@@ -538,9 +559,9 @@ function EqOutputs({ outputs }: { outputs?: Record<string, unknown> | unknown[] 
 
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-border p-4">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 break-words text-sm font-medium">{value}</p>
+    <div className="rounded-md border border-black/10 bg-white/50 p-4 dark:border-white/10 dark:bg-white/5">
+      <p className="text-sm text-black/55 dark:text-white/55">{label}</p>
+      <p className="mt-1 break-words text-sm font-medium text-black dark:text-white">{value}</p>
     </div>
   );
 }
@@ -556,8 +577,8 @@ function DetailRow({
 }) {
   return (
     <div className="grid gap-2 px-5 py-4 sm:grid-cols-3 sm:gap-4">
-      <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-      <dd className={`text-sm text-foreground sm:col-span-2 ${multiline ? "whitespace-pre-wrap break-words" : ""}`}>
+      <dt className="text-sm font-medium text-black/50 dark:text-white/50">{label}</dt>
+      <dd className={`text-sm text-black dark:text-white sm:col-span-2 ${multiline ? "whitespace-pre-wrap break-words" : ""}`}>
         {value || "Not specified"}
       </dd>
     </div>
@@ -577,14 +598,14 @@ function DetailList({
 }) {
   return (
     <div className="grid gap-2 px-5 py-4 sm:grid-cols-3 sm:gap-4">
-      <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-      <dd className="text-sm text-foreground sm:col-span-2">
+      <dt className="text-sm font-medium text-black/50 dark:text-white/50">{label}</dt>
+      <dd className="text-sm text-black dark:text-white sm:col-span-2">
         {values && values.length > 0 ? (
           <ul className="space-y-2">
             {values.map((value) => (
-              <li key={value} className="break-words rounded-md bg-muted px-3 py-2">
+              <li key={value} className="break-words rounded-md bg-black/5 px-3 py-2 dark:bg-white/5">
                 {linkValues ? (
-                  <a href={value} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                  <a href={value} target="_blank" rel="noreferrer" className="text-[color:var(--brand-blue)] hover:underline dark:text-[color:var(--brand-lavender)]">
                     {value}
                   </a>
                 ) : value}
@@ -592,7 +613,7 @@ function DetailList({
             ))}
           </ul>
         ) : (
-          <span className="text-muted-foreground">{emptyText}</span>
+          <span className="text-black/55 dark:text-white/55">{emptyText}</span>
         )}
       </dd>
     </div>
