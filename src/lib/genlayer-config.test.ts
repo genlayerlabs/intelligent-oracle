@@ -4,6 +4,8 @@ import {
   getFirstTriggeredTransactionHash,
   getGenLayerRpcUrl,
   getOracleFactoryAddress,
+  getPrivyAppId,
+  getPrivyClientId,
   hasInvalidOracleFactoryAddress,
 } from "@/lib/genlayer-config";
 
@@ -33,6 +35,13 @@ describe("genlayer public config", () => {
     expect(getGenLayerRpcUrl({})).toBe("https://studio.genlayer.com/api");
     expect(getGenLayerRpcUrl({ NEXT_PUBLIC_GENLAYER_RPC_URL: "https://example.test/rpc" }))
       .toBe("https://example.test/rpc");
+  });
+
+  it("reads Privy app identifiers without a development fallback", () => {
+    expect(getPrivyAppId({})).toBeUndefined();
+    expect(getPrivyClientId({})).toBeUndefined();
+    expect(getPrivyAppId({ NEXT_PUBLIC_PRIVY_APP_ID: "privy-app" })).toBe("privy-app");
+    expect(getPrivyClientId({ NEXT_PUBLIC_PRIVY_CLIENT_ID: "client-id" })).toBe("client-id");
   });
 });
 

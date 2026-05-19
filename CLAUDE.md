@@ -53,7 +53,7 @@ Project-specific skills live in `.claude/skills/`. The GenLayer development skil
 ## Environment
 
 - Server-only: `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `OPENROUTER_BASE_URL`. Used by `src/app/api/chat/route.ts` only.
-- Browser: `NEXT_PUBLIC_GENLAYER_RPC_URL`, `NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS`, `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`. `NEXT_PUBLIC_IC_REGISTRY_ADDRESS` is a legacy fallback during migration.
+- Browser: `NEXT_PUBLIC_GENLAYER_RPC_URL`, `NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS`, `NEXT_PUBLIC_PRIVY_APP_ID`, optional `NEXT_PUBLIC_PRIVY_CLIENT_ID`. `NEXT_PUBLIC_IC_REGISTRY_ADDRESS` is a legacy fallback during migration.
 - Default RPC targets hosted Studio (`https://studio.genlayer.com/api`). Override the public RPC env var for localnet or testnets. Wallet signing replaces any server-side bridge key — there is no bridge route or `BRIDGE_PRIVATE_KEY`.
 
 ## Tech Stack

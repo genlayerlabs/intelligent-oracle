@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { switzer } from "@/lib/fonts";
-import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

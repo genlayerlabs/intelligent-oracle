@@ -1,6 +1,5 @@
 "use client";
 
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Copy, ExternalLink, RefreshCw, Rocket } from "lucide-react";
 import type { Address } from "genlayer-js/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -40,6 +39,7 @@ import {
 } from "@/lib/transactions";
 import { buildResolutionSummary } from "@/lib/resolution-timeline";
 import { useGenLayer } from "@/lib/use-genlayer";
+import { useOpenWalletConnection } from "@/lib/use-privy-wallet";
 
 interface OracleDetailsPageProps {
   address: string;
@@ -86,7 +86,7 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
     fetchTransactions,
     resolveOracle,
   } = useGenLayer();
-  const { openConnectModal } = useConnectModal();
+  const openWalletConnection = useOpenWalletConnection("Connect your wallet to initiate oracle resolution.");
   const [oracle, setOracle] = useState<Oracle | undefined>();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   // Each refresh allocates a new transactions array, so a naive [oracle, transactions]
@@ -155,7 +155,7 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
 
   function openResolution() {
     if (!walletConnected) {
-      openConnectModal?.();
+      openWalletConnection();
       setResolutionError("Connect your wallet to initiate resolution.");
       return;
     }
@@ -171,7 +171,7 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
 
   async function submitResolution(evidence: string) {
     if (!walletConnected) {
-      openConnectModal?.();
+      openWalletConnection();
       setResolutionError("Connect your wallet to submit resolution.");
       return;
     }

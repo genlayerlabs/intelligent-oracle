@@ -47,7 +47,9 @@ OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 # Bundled into the browser build
 NEXT_PUBLIC_GENLAYER_RPC_URL=https://studio.genlayer.com/api
 NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS=0x...
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...`;
+NEXT_PUBLIC_PRIVY_APP_ID=...
+# Optional
+NEXT_PUBLIC_PRIVY_CLIENT_ID=...`;
 
 const checkCommands = `npm run check
 
@@ -103,7 +105,7 @@ export default function DocsPage() {
             </ForkStep>
             <ForkStep number={2} title="Configure environment">
               <p>
-                Copy the example file and fill in your OpenRouter key, GenLayer RPC URL, and the factory address you&apos;ll deploy in step 4 (or a shared one).
+                Copy the example file and fill in your OpenRouter key, Privy app ID, GenLayer RPC URL, and the factory address you&apos;ll deploy in step 4 (or a shared one).
               </p>
               <DocsCodeBlock code={envSetupCommand} language="bash" title="Terminal" />
             </ForkStep>

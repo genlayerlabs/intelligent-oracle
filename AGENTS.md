@@ -73,7 +73,8 @@ Browser env vars:
 
 - `NEXT_PUBLIC_GENLAYER_RPC_URL`
 - `NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS`
-- `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`
+- `NEXT_PUBLIC_PRIVY_APP_ID`
+- `NEXT_PUBLIC_PRIVY_CLIENT_ID` (optional)
 - `NEXT_PUBLIC_IC_REGISTRY_ADDRESS`
 
 `NEXT_PUBLIC_IC_REGISTRY_ADDRESS` is a legacy fallback during migration. Hosted Studio defaults to `https://studio.genlayer.com/api`. If using local Studio, update the browser GenLayer RPC env var.

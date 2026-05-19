@@ -1,11 +1,15 @@
 "use client";
 
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { genLayerChain } from "@/lib/genlayer-config";
+import { useOpenWalletConnection } from "@/lib/use-privy-wallet";
 import { cn } from "@/lib/utils";
+import { shortenAddress } from "@/lib/address";
 
 interface AppHeaderProps {
   active: "assistant" | "explorer";
@@ -65,46 +69,44 @@ export function AppHeader({ active, oracleAddress }: AppHeaderProps) {
 }
 
 function WalletButton() {
+  const [mounted, setMounted] = useState(false);
+  const { address, isConnected } = useAccount();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
+  const openWalletConnection = useOpenWalletConnection();
+  const wrongNetwork = Boolean(isConnected && address && chainId !== genLayerChain.id);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Button type="button" variant="outline" size="sm" disabled className="w-[4.75rem] border-black/15 bg-transparent px-2 text-[#2e2e2e] sm:w-[6.75rem] dark:border-white/20 dark:text-white">
+        Wallet
+      </Button>
+    );
+  }
+
+  if (!isConnected || !address) {
+    return (
+      <Button type="button" variant="outline" size="sm" onClick={openWalletConnection} className="border-black/15 bg-transparent px-2 text-[#2e2e2e] hover:bg-black hover:text-white sm:px-3 dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
+        Connect
+      </Button>
+    );
+  }
+
+  if (wrongNetwork) {
+    return (
+      <Button type="button" variant="outline" size="sm" onClick={() => switchChain({ chainId: genLayerChain.id })} className="border-black/15 bg-transparent px-2 text-[#2e2e2e] hover:bg-black hover:text-white sm:px-3 dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
+        Switch
+      </Button>
+    );
+  }
+
   return (
-    <ConnectButton.Custom>
-      {({
-        account,
-        chain,
-        mounted,
-        openAccountModal,
-        openChainModal,
-        openConnectModal,
-      }) => {
-        if (!mounted) {
-          return (
-            <Button type="button" variant="outline" size="sm" disabled className="w-[4.75rem] border-black/15 bg-transparent px-2 text-[#2e2e2e] sm:w-[6.75rem] dark:border-white/20 dark:text-white">
-              Wallet
-            </Button>
-          );
-        }
-
-        if (!account || !chain) {
-          return (
-            <Button type="button" variant="outline" size="sm" onClick={openConnectModal} className="border-black/15 bg-transparent px-2 text-[#2e2e2e] hover:bg-black hover:text-white sm:px-3 dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
-              Connect
-            </Button>
-          );
-        }
-
-        if (chain.unsupported) {
-          return (
-            <Button type="button" variant="outline" size="sm" onClick={openChainModal} className="border-black/15 bg-transparent px-2 text-[#2e2e2e] hover:bg-black hover:text-white sm:px-3 dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
-              Switch
-            </Button>
-          );
-        }
-
-        return (
-          <Button type="button" variant="outline" size="sm" onClick={openAccountModal} className="max-w-32 border-black/15 bg-transparent text-[#2e2e2e] hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
-            <span className="truncate">{account.displayName}</span>
-          </Button>
-        );
-      }}
-    </ConnectButton.Custom>
+    <Button type="button" variant="outline" size="sm" onClick={openWalletConnection} className="max-w-32 border-black/15 bg-transparent text-[#2e2e2e] hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
+      <span className="truncate">{shortenAddress(address, 12)}</span>
+    </Button>
   );
 }

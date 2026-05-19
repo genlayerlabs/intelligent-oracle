@@ -3,13 +3,13 @@ import type { Address, GenLayerTransaction, TransactionHash } from "genlayer-js/
 import { isAddress } from "viem";
 
 const DEFAULT_STUDIO_RPC_URL = studionet.rpcUrls.default.http[0] || "https://studio.genlayer.com/api";
-const LOCAL_WALLETCONNECT_PROJECT_ID = "local-development-walletconnect-project-id";
 
 type PublicGenLayerEnv = {
   NEXT_PUBLIC_GENLAYER_RPC_URL?: string;
   NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS?: string;
   NEXT_PUBLIC_IC_REGISTRY_ADDRESS?: string;
-  NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID?: string;
+  NEXT_PUBLIC_PRIVY_APP_ID?: string;
+  NEXT_PUBLIC_PRIVY_CLIENT_ID?: string;
 };
 
 function trim(value: string | undefined): string | undefined {
@@ -24,7 +24,8 @@ function resolveEnv(env?: PublicGenLayerEnv) {
     rpcUrl: trim(env?.NEXT_PUBLIC_GENLAYER_RPC_URL ?? process.env.NEXT_PUBLIC_GENLAYER_RPC_URL),
     factoryAddress: trim(env?.NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS ?? process.env.NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS),
     legacyRegistryAddress: trim(env?.NEXT_PUBLIC_IC_REGISTRY_ADDRESS ?? process.env.NEXT_PUBLIC_IC_REGISTRY_ADDRESS),
-    walletConnectProjectId: trim(env?.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID),
+    privyAppId: trim(env?.NEXT_PUBLIC_PRIVY_APP_ID ?? process.env.NEXT_PUBLIC_PRIVY_APP_ID),
+    privyClientId: trim(env?.NEXT_PUBLIC_PRIVY_CLIENT_ID ?? process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID),
   };
 }
 
@@ -32,8 +33,12 @@ export function getGenLayerRpcUrl(env?: PublicGenLayerEnv) {
   return resolveEnv(env).rpcUrl || DEFAULT_STUDIO_RPC_URL;
 }
 
-export function getWalletConnectProjectId(env?: PublicGenLayerEnv) {
-  return resolveEnv(env).walletConnectProjectId || LOCAL_WALLETCONNECT_PROJECT_ID;
+export function getPrivyAppId(env?: PublicGenLayerEnv) {
+  return resolveEnv(env).privyAppId;
+}
+
+export function getPrivyClientId(env?: PublicGenLayerEnv) {
+  return resolveEnv(env).privyClientId;
 }
 
 export function getOracleFactoryAddress(env?: PublicGenLayerEnv): Address | undefined {

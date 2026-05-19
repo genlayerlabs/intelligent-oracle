@@ -1,7 +1,6 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { DefaultChatTransport, generateId } from "ai";
 import confetti from "canvas-confetti";
 import {
@@ -82,6 +81,7 @@ import {
 } from "@/lib/oracle-config";
 import { cn } from "@/lib/utils";
 import { useGenLayer } from "@/lib/use-genlayer";
+import { useOpenWalletConnection } from "@/lib/use-privy-wallet";
 import type {
   OracleChatMessage,
   OracleConfig,
@@ -464,7 +464,7 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
   const [userHasEdited, setUserHasEdited] = useState(false);
   const lastAppliedDraftIdRef = useRef<string | null>(null);
   const { createOracle, walletConnected } = useGenLayer();
-  const { openConnectModal } = useConnectModal();
+  const openWalletConnection = useOpenWalletConnection("Connect your wallet to create this market.");
 
   const {
     clearError,
@@ -661,7 +661,7 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
 
   async function createMarket() {
     if (!walletConnected) {
-      openConnectModal?.();
+      openWalletConnection();
       setCreationError("Connect your wallet to create this market.");
       return;
     }
