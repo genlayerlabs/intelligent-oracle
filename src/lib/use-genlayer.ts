@@ -2,7 +2,7 @@
 
 import { createClient } from "genlayer-js";
 import { type Address, type CalldataEncodable, TransactionStatus } from "genlayer-js/types";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import {
   extractOracleAddressFromReceipt,
@@ -126,9 +126,13 @@ export function useGenLayer() {
   const ready = Boolean(factoryAddress);
   const walletConnected = Boolean(isConnected && walletAddress && connector);
   const wrongNetwork = walletConnected && chainId !== genLayerChain.id;
-  const [oracles, setOracles] = useState<Oracle[]>(loadCachedOracles);
+  const [oracles, setOracles] = useState<Oracle[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState("");
+
+  useEffect(() => {
+    setOracles(loadCachedOracles());
+  }, []);
 
   const readClient = useMemo(
     () => createClient({ chain: genLayerChain, endpoint }),
@@ -215,7 +219,7 @@ export function useGenLayer() {
     try {
       const result = await readClient.request({
         method: "sim_getTransactionsForAddress",
-        params: [address, "to"],
+        params: [address],
       });
       return Array.isArray(result) ? result.map(normalizeTransaction) : [];
     } catch (error) {
@@ -253,12 +257,18 @@ export function useGenLayer() {
 
     const parentReceipt = await readClient.waitForTransactionReceipt({
       hash: transactionHash,
-      status: TransactionStatus.FINALIZED,
+      status: TransactionStatus.ACCEPTED,
     });
 
-    const oracleTransactionHash = getFirstTriggeredTransactionHash(
-      await readClient.getTriggeredTransactionIds({ hash: transactionHash }),
-    );
+    let oracleTransactionHash: ReturnType<typeof getFirstTriggeredTransactionHash> = null;
+    for (let attempt = 0; attempt < 30 && !oracleTransactionHash; attempt += 1) {
+      oracleTransactionHash = getFirstTriggeredTransactionHash(
+        await readClient.getTriggeredTransactionIds({ hash: transactionHash }),
+      );
+      if (!oracleTransactionHash) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
 
     if (!oracleTransactionHash) {
       throw new Error("Market creation finished, but no oracle transaction was returned.");

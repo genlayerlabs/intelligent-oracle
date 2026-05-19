@@ -6,43 +6,49 @@ const DEFAULT_STUDIO_RPC_URL = studionet.rpcUrls.default.http[0] || "https://stu
 const LOCAL_WALLETCONNECT_PROJECT_ID = "local-development-walletconnect-project-id";
 
 type PublicGenLayerEnv = {
-  [key: string]: string | undefined;
   NEXT_PUBLIC_GENLAYER_RPC_URL?: string;
   NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS?: string;
   NEXT_PUBLIC_IC_REGISTRY_ADDRESS?: string;
   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID?: string;
 };
 
-function readEnv(env: PublicGenLayerEnv, key: keyof PublicGenLayerEnv) {
-  const value = env[key]?.trim();
-  return value || undefined;
+function trim(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed || undefined;
 }
 
-export function getGenLayerRpcUrl(env: PublicGenLayerEnv = process.env) {
-  return readEnv(env, "NEXT_PUBLIC_GENLAYER_RPC_URL") || DEFAULT_STUDIO_RPC_URL;
+// Use direct `process.env.NEXT_PUBLIC_*` access so Next.js inlines values at
+// build time for the client bundle. Tests pass `env` explicitly to override.
+function resolveEnv(env?: PublicGenLayerEnv) {
+  return {
+    rpcUrl: trim(env?.NEXT_PUBLIC_GENLAYER_RPC_URL ?? process.env.NEXT_PUBLIC_GENLAYER_RPC_URL),
+    factoryAddress: trim(env?.NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS ?? process.env.NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS),
+    legacyRegistryAddress: trim(env?.NEXT_PUBLIC_IC_REGISTRY_ADDRESS ?? process.env.NEXT_PUBLIC_IC_REGISTRY_ADDRESS),
+    walletConnectProjectId: trim(env?.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID),
+  };
 }
 
-export function getWalletConnectProjectId(env: PublicGenLayerEnv = process.env) {
-  return readEnv(env, "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID") || LOCAL_WALLETCONNECT_PROJECT_ID;
+export function getGenLayerRpcUrl(env?: PublicGenLayerEnv) {
+  return resolveEnv(env).rpcUrl || DEFAULT_STUDIO_RPC_URL;
 }
 
-export function getOracleFactoryAddress(env: PublicGenLayerEnv = process.env): Address | undefined {
-  const address =
-    readEnv(env, "NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS") ||
-    readEnv(env, "NEXT_PUBLIC_IC_REGISTRY_ADDRESS");
+export function getWalletConnectProjectId(env?: PublicGenLayerEnv) {
+  return resolveEnv(env).walletConnectProjectId || LOCAL_WALLETCONNECT_PROJECT_ID;
+}
 
+export function getOracleFactoryAddress(env?: PublicGenLayerEnv): Address | undefined {
+  const { factoryAddress, legacyRegistryAddress } = resolveEnv(env);
+  const address = factoryAddress || legacyRegistryAddress;
   return address && isAddress(address) ? address : undefined;
 }
 
-export function hasInvalidOracleFactoryAddress(env: PublicGenLayerEnv = process.env) {
-  const address =
-    readEnv(env, "NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS") ||
-    readEnv(env, "NEXT_PUBLIC_IC_REGISTRY_ADDRESS");
-
+export function hasInvalidOracleFactoryAddress(env?: PublicGenLayerEnv) {
+  const { factoryAddress, legacyRegistryAddress } = resolveEnv(env);
+  const address = factoryAddress || legacyRegistryAddress;
   return Boolean(address && !isAddress(address));
 }
 
-export function getGenLayerChain(env: PublicGenLayerEnv = process.env) {
+export function getGenLayerChain(env?: PublicGenLayerEnv) {
   const rpcUrl = getGenLayerRpcUrl(env);
 
   return {
