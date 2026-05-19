@@ -67,10 +67,13 @@ The `IntelligentOracle` contract is an AI-powered oracle that resolves predictio
 
 ### Deployment Instructions
 
+Deployment lives in the separate `scripts/` package at repo root.
+
 1. **Environment Setup**
-   First, make sure you have a `.env` file in your project root with the RPC URL:
-   ```
-   RPC_URL=your_rpc_endpoint_here
+   ```bash
+   cd scripts
+   cp .env.example .env
+   # fill in RPC URL and signer key
    ```
 
 2. **Install Dependencies**
@@ -87,7 +90,7 @@ The `IntelligentOracle` contract is an AI-powered oracle that resolves predictio
    - Deploy the IntelligentOracleFactory contract
    - Pass the IntelligentOracle source into the factory constructor so new markets can deploy oracle instances
    - Output the deployed contract address
-   - Save this address as you'll need it to interact with the contract
+   - Save this address as you'll need it to interact with the contract (paste into `NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS` in the root app's `.env`)
 
 ### Creating New Prediction Markets
 

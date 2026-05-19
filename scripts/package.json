@@ -1,4 +1,9 @@
 {
+  "name": "intelligent-oracle-deploy",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Factory deployment scripts for the Intelligent Oracle (genlayer-js).",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^25.6.0",
     "tsx": "^4.21.0",

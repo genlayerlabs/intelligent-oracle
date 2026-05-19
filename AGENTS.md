@@ -107,6 +107,8 @@ If any of these change, update the GenLayer hooks, deploy script, and Python tes
 - Keep UI client behavior in client components.
 - Do not run deployment commands as routine verification.
 - `.claude/skills/` contains GenLayer-specific workflow notes adapted from `genlayerlabs/skills`; consult them when changing contracts, deployment behavior, or GenLayer testing.
+- Project is MIT-licensed (see `LICENSE`). Do not add per-file license headers — upstream convention is no headers.
+- Brand strings (GitHub URL, owner name, optional Discord) live in `src/lib/site-meta.ts`. Edit that file rather than hardcoding URLs in components or docs.
 
 ## Wizard Invariants (do not regress)
 

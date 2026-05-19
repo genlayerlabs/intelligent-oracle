@@ -6,10 +6,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { Button } from "@/components/ui/button";
+import {
+  SITE_COPYRIGHT_YEAR,
+  SITE_DISCORD_URL,
+  SITE_GITHUB_URL,
+  SITE_OWNER_NAME,
+} from "@/lib/site-meta";
 import { cn } from "@/lib/utils";
-
-const communityUrl = "https://discord.gg/BzU4xBzThe";
-const githubUrl = "https://github.com/genlayer-foundation/intelligent-oracle";
 
 interface PublicHeaderProps {
   active?: "home" | "docs";
@@ -193,7 +196,7 @@ export function PublicFooter() {
             <span className="text-base font-medium">Intelligent Oracle</span>
           </Link>
 
-          <p className="text-sm text-black/55">&copy; GenLayer Foundation 2026</p>
+          <p className="text-sm text-black/55">&copy; {SITE_OWNER_NAME} {SITE_COPYRIGHT_YEAR}</p>
 
           <nav className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-black/70 md:justify-self-end">
             <Link className="hover:text-black" href="/docs">
@@ -202,12 +205,14 @@ export function PublicFooter() {
             <Link className="hover:text-black" href="/explorer">
               Explorer
             </Link>
-            <a className="hover:text-black" href={githubUrl} rel="noreferrer" target="_blank">
+            <a className="hover:text-black" href={SITE_GITHUB_URL} rel="noreferrer" target="_blank">
               Github
             </a>
-            <a className="hover:text-black" href={communityUrl} rel="noreferrer" target="_blank">
-              Community
-            </a>
+            {SITE_DISCORD_URL ? (
+              <a className="hover:text-black" href={SITE_DISCORD_URL} rel="noreferrer" target="_blank">
+                Community
+              </a>
+            ) : null}
           </nav>
         </div>
       </div>

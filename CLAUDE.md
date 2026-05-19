@@ -87,3 +87,7 @@ Behavioral contract the AI is held to:
 ## Git Conventions
 
 Use conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`.
+
+## License
+
+MIT — see `LICENSE`. Do not add per-file license headers. Brand/URL constants live in `src/lib/site-meta.ts` — edit there rather than hardcoding in components.

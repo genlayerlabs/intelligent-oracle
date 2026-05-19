@@ -1,6 +1,18 @@
-# Giliri Oracle Workspace
+# Intelligent Oracle
 
-A reference app for creating and monitoring oracle markets. The UI and API runtime are a single Next.js App Router application backed by GenLayer intelligent contracts.
+A reference Next.js app for creating, deploying, and monitoring AI-powered prediction-market oracles on GenLayer. Draft a market in plain English, sign the create transaction from your own wallet, and let validator consensus resolve it against live web evidence.
+
+## What changed from the previous architecture
+
+This repo previously shipped four moving parts behind a `docker-compose`: a Nuxt `bridge/` API, a Nuxt `ui-wizard/`, a Vite+Vue `explorer/`, and the GenLayer Python contracts. Everything UI- and runtime-related has been consolidated into a single Next.js 16 App Router app under `src/`:
+
+- `bridge/` → `src/app/api/chat/route.ts` (Vercel AI SDK + OpenRouter, server-only key).
+- `ui-wizard/` → `src/app/assistant` (AI-driven oracle drafting + live Market Draft panel).
+- `explorer/` → `src/app/explorer` and `src/app/oracle/[address]`.
+- `docker-compose.yml` → removed. Hosted GenLayer Studio (`https://studio.genlayer.com/api`) is the default; localnet is one env var away.
+- Server-side bridge signer key → removed. Create and resolve transactions are signed by the user's connected wallet.
+
+The Python contracts in `intelligent-contracts/` and the standalone deploy scripts in `scripts/` are unchanged.
 
 ## Prerequisites
 
@@ -12,19 +24,29 @@ A reference app for creating and monitoring oracle markets. The UI and API runti
    genlayer network set studionet
    ```
 
-The hosted Studio network (`https://studio.genlayer.com/api`) is the default. For local development with a validator network, run `genlayer init` and set the GenLayer RPC env vars to `http://localhost:4000/api`.
+The hosted Studio network (`https://studio.genlayer.com/api`) is the default. For local development with a validator network, run `genlayer init` and point the GenLayer RPC env var at `http://localhost:4000/api`.
 
-## Components
+## Quickstart
 
-- `src/app` — Next.js App Router UI and route handlers
-  - `/` — branded Intelligent Oracle landing page
-  - `/assistant` — assistant-driven oracle configuration wizard
-  - `/explorer` — oracle registry explorer
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+## Project Structure
+
+- `src/app` — Next.js App Router UI and route handlers:
+  - `/` — landing page
+  - `/assistant` — AI-driven oracle drafting wizard
+  - `/explorer` — registry of deployed oracles
   - `/oracle/[address]` — oracle detail, transaction inspection, and resolution
-  - `/docs` — current single-page app and contract guide
-  - `/api/chat` — OpenRouter-backed AI SDK streaming chat
+  - `/docs` — get-started guide
+  - `/api/chat` — OpenRouter-backed streaming chat
+- `src/components` — React UI for landing, docs, wizard, and explorer
+- `src/lib` — shared validation, AI message parsing, GenLayer client hooks, and display helpers
 - `intelligent-contracts/` — GenLayer Python contracts
-- `scripts/` — separate npm package for factory deployment scripts; kept outside the root app because it has deployment-specific env and side effects
+- `scripts/` — separate npm package for factory deployment, kept outside root app commands
 - `test/` — Python E2E tests and seed helpers
 
 ## Environment
@@ -32,43 +54,68 @@ The hosted Studio network (`https://studio.genlayer.com/api`) is the default. Fo
 Copy `.env.example` to `.env` and fill in:
 
 ```bash
+# Server-only
 OPENROUTER_API_KEY=...
 OPENROUTER_MODEL=openai/gpt-5-mini
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 
+# Bundled into the browser build
 NEXT_PUBLIC_GENLAYER_RPC_URL=https://studio.genlayer.com/api
 NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS=0x...
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...
-
-# Legacy fallback during migration
-NEXT_PUBLIC_IC_REGISTRY_ADDRESS=0x...
 ```
 
-`OPENROUTER_*` values are server-only. GenLayer reads and writes in the app use browser-visible `NEXT_PUBLIC_*` values, and write transactions are signed by the connected wallet.
+`OPENROUTER_*` values are server-only. GenLayer reads and writes use the browser-visible `NEXT_PUBLIC_*` values; write transactions are signed by the connected wallet.
 
-## Development
+## Verification
 
 ```bash
-npm install
-npm run dev
-
-# Deploy the factory, when intentionally changing infrastructure
-cd scripts && npm install && cp .env.example .env && npm run deploy
-
-# Contract linting
-genvm-lint check intelligent-contracts/IntelligentOracle.py
-genvm-lint check intelligent-contracts/IntelligentOracleFactory.py
-
-# Tests
 npm run check
+```
 
+`npm run check` runs lint, TypeScript, unit tests, and the production Next.js build.
+
+Individual checks:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
+
+Contract tests (Python):
+
+```bash
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r test/requirements.txt
 python -m pytest test/
 ```
 
-`npm run check` runs lint, TypeScript, unit tests, and the production Next.js build for the root UI/API app. The `scripts/` package is installed and run separately only when intentionally changing deployed infrastructure.
+Contract linting:
+
+```bash
+genvm-lint check intelligent-contracts/IntelligentOracle.py
+genvm-lint check intelligent-contracts/IntelligentOracleFactory.py
+```
+
+## Factory Deployment
+
+The factory deploy script is a separate npm package and is user-invoked only.
+
+```bash
+cd scripts
+npm install
+cp .env.example .env
+npm run deploy
+```
+
+The script deploys `IntelligentOracleFactory` with the `IntelligentOracle` source passed into its constructor, then prints the factory address. Paste that address into `NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS` in the root app's `.env`.
+
+## Branding / Forking
+
+Repo URL, owner name, and optional Discord invite are centralized in `src/lib/site-meta.ts`. Fork-and-deploy users should edit that one file to point at their own repo and branding.
 
 ## Tech Stack
 
@@ -80,4 +127,4 @@ python -m pytest test/
 
 ## License
 
-MIT
+MIT — see [`LICENSE`](./LICENSE).

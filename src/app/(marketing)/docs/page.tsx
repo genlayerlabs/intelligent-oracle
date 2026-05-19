@@ -10,6 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { SITE_GITHUB_URL } from "@/lib/site-meta";
 
 export const metadata: Metadata = {
   title: "Get started - Intelligent Oracle",
@@ -17,10 +18,10 @@ export const metadata: Metadata = {
     "Try the assistant or fork the repo and deploy your own intelligent oracles on GenLayer.",
 };
 
-const githubUrl = "https://github.com/genlayer-foundation/intelligent-oracle";
+const repoName = SITE_GITHUB_URL.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").split("/").pop() ?? "intelligent-oracle";
 
-const cloneCommand = `git clone https://github.com/genlayer-foundation/intelligent-oracle
-cd intelligent-oracle
+const cloneCommand = `git clone ${SITE_GITHUB_URL}
+cd ${repoName}
 npm install`;
 
 const envSetupCommand = `cp .env.example .env`;
@@ -159,7 +160,7 @@ export default function DocsPage() {
           </ol>
 
           <a
-            href={githubUrl}
+            href={SITE_GITHUB_URL}
             target="_blank"
             rel="noreferrer"
             className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-[#9733fa] hover:text-black"
