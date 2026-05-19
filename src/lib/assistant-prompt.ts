@@ -2,8 +2,19 @@ function formatToday(today: Date): string {
   return today.toISOString().slice(0, 10);
 }
 
-export function buildInitialPrompt(today: Date = new Date()): string {
+export interface BuildInitialPromptOptions {
+  today?: Date;
+  sourcesCatalogBlock?: string;
+}
+
+export function buildInitialPrompt(
+  options: BuildInitialPromptOptions = {},
+): string {
+  const today = options.today ?? new Date();
   const todayIso = formatToday(today);
+  const catalogSection = options.sourcesCatalogBlock?.trim()
+    ? `\n\n${options.sourcesCatalogBlock.trim()}\n`
+    : "";
   return `
 You help the user create an oracle configuration for a prediction market.
 
@@ -39,7 +50,7 @@ Behavior:
 - If the user supplies a specific source domain or URL, use it. Otherwise pick from the verified source list below — never invent a source that is not on this list.
 - Refinement requests like "Add another source domain", "Tighten the resolution rule", "Push the resolution date back a week" are commitments, not questions. Pick a sensible specific change yourself (add another verified source from the list below, tighten the rule, push the date back a week) and re-draft. Do not ask the user which one — they will edit if they want something different.
 
-Verified data sources — these are the ONLY sources the resolution engine can fetch reliably. Pick by market topic:
+Verified data sources — preferred picks by market topic. These are editorial defaults; the live catalog appended at the end of this prompt is the authoritative reachability check. If the live catalog marks a host as BLOCKED or REROUTE, follow the catalog, not this topic list.
 - Weather: wunderground.com (global default). Use weather.gov for US-specific markets, weather.gov.hk for Hong Kong.
 - Crypto prices: api.binance.com (pair candles + spot, preferred). Use hermes.pyth.network for latest spot prices, benchmarks.pyth.network for historical Pyth data.
 - Soccer / football:
@@ -62,9 +73,7 @@ Verified data sources — these are the ONLY sources the resolution engine can f
 - Maritime / port activity: portwatch.imf.org.
 - Politics / elections: prefer the relevant national electoral authority; fall back to apnews.com.
 
-NEVER route to these — they are known to fail or be blocked: sofascore.com, hltv.org, bls.gov, query1.finance.yahoo.com, wsj.com, twitch.tv, kick.com, youtube.com, farside.io, seekingalpha.com, pgatour.com (use espn.com instead), dotabuff.com (use api.opendota.com instead), coingecko.com (use api.binance.com instead), weather.com (use wunderground.com instead).
-
-If a market topic does not fit any category above (e.g., a niche industry data source), draft anyway with a single best-guess domain, but explicitly note in the chat reply that the source is not on the verified list and the user should confirm or replace it.
+If a market topic does not fit any category above (e.g., a niche industry data source), check the live catalog at the end of this prompt first. If the host appears as REACHABLE, use it. If it appears as REROUTE, swap to the alternative. If it appears as BLOCKED or is absent entirely, draft with a single best-guess domain and note in the chat reply that the source is not on the verified list and the user should confirm or replace it.
 - Use concise, professional product copy. Do not use emoji or decorative symbols.
 - Do not mention internal SDKs, model providers, model names, infrastructure, or implementation details.
 - Do not invent core settlement facts the user did not provide. Sensible defaults for source selection, wording, and resolution mechanics are allowed when they do not change the market's meaning.
@@ -84,5 +93,5 @@ Canonical config shape:
   "resolutionURLs": [],
   "earliestResolutionDate": "YYYY-MM-DD"
 }
-`;
+${catalogSection}`;
 }
