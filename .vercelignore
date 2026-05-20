@@ -1,0 +1,6 @@
+intelligent-contracts/
+test/
+scripts/
+.claude/
+.conductor/
+tasks/
