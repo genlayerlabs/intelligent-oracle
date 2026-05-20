@@ -114,7 +114,7 @@ const features: FeatureCard[] = [
   {
     title: "Open Source · MIT",
     description:
-      "Intelligent Oracle is MIT-licensed. Read the code, run it locally, or fork it for your own protocol.",
+      "The Intelligent Oracle application code is MIT-licensed. Read it, run it locally, or fork it for your own protocol.",
     icon: Braces,
     tone: "lavender",
     className: "md:col-span-2",
