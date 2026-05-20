@@ -743,7 +743,15 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
           </div>
 
           <Conversation className="min-h-0 flex-1">
-            <ConversationContent className="gap-6 px-4 py-6 sm:px-6">
+            <ConversationContent
+              className={cn(
+                "relative isolate min-w-0 gap-6 overflow-hidden px-4 py-6 sm:px-6",
+                showEmptyState
+                  ? "min-h-full pb-5 pt-10 sm:pb-6 sm:pt-20 [@media(max-height:900px)]:py-4"
+                  : null,
+              )}
+            >
+              {showEmptyState ? <EmptyStateBackdrop /> : null}
               {showEmptyState ? (
                 <EmptyStateHero disabled={isGenerating} onExample={submitText} />
               ) : null}
@@ -947,33 +955,45 @@ function EmptyStateHero({
   onExample: (prompt: string) => void;
 }) {
   return (
-    <div className="relative isolate mx-auto flex w-full max-w-3xl flex-col gap-7 py-8 text-[#2e2e2e] dark:text-white">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-10 -z-10 h-72 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--brand-lavender)_16%,transparent),transparent_65%)] opacity-80 dark:opacity-35"
-      />
-      <WaveDecoration
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-56 w-full opacity-60 [mask-image:linear-gradient(to_bottom,black,transparent)]"
-      />
-      <div>
+    <div className="relative z-10 mx-auto flex w-full max-w-3xl min-w-0 flex-col gap-5 text-[#2e2e2e] dark:text-white [@media(max-height:860px)]:gap-4">
+      <div className="min-w-0">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[image:var(--gradient-brand)] px-3 py-1 text-xs font-medium text-white">
           <BrandMark className="size-3" />
           Intelligent Oracle
         </span>
-        <h2 className="mt-4 text-[clamp(2rem,5vw,4rem)] font-light leading-none tracking-normal">
+        <h2 className="mt-3 text-5xl font-light leading-none tracking-normal sm:text-6xl [@media(max-height:860px)]:sm:text-5xl">
           Create an Intelligent Oracle
         </h2>
-        <p className="mt-4 max-w-2xl text-base font-light leading-7 text-black/65 dark:text-white/65">
+        <p className="mt-3 max-w-2xl text-sm font-light leading-6 text-black/65 dark:text-white/65 sm:text-base">
           Describe a market in plain English. The on-chain config drafts on the right, field by field.
           Pick an example or type your own.
         </p>
       </div>
 
+      <div className="flex max-w-full flex-col gap-3 rounded-md border border-black/10 bg-white/65 p-3 text-sm shadow-sm shadow-black/[0.03] dark:border-white/10 dark:bg-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="font-medium text-black dark:text-white">Use your own agent</p>
+          <p className="mt-1 max-w-xl break-words leading-6 text-black/60 dark:text-white/60">
+            Open the Intelligent Oracle skill and use it with Codex, Claude Code, Cursor, or any agent that can read a URL.
+          </p>
+        </div>
+        <Button
+          asChild
+          size="sm"
+          variant="outline"
+          className="shrink-0 border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black"
+        >
+          <Link href="/skill.md" target="_blank" rel="noreferrer">
+            Open skill
+            <ExternalLink className="size-3.5" aria-hidden />
+          </Link>
+        </Button>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-3">
         {STARTER_EXAMPLES.map((example) => (
           <button
-            className="brand-surface-solid group flex flex-col justify-between gap-4 rounded-md p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-lavender)]/50 hover:bg-[color:color-mix(in_oklab,var(--brand-lavender)_10%,white)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 dark:hover:bg-white/10 sm:min-h-36"
+            className="brand-surface-solid group flex min-w-0 flex-col justify-between gap-3 rounded-md p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-lavender)]/50 hover:bg-[color:color-mix(in_oklab,var(--brand-lavender)_10%,white)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 dark:hover:bg-white/10 sm:min-h-32 [@media(max-height:860px)]:sm:min-h-28"
             disabled={disabled}
             key={example.title}
             onClick={() => onExample(example.prompt)}
@@ -990,6 +1010,21 @@ function EmptyStateHero({
         ))}
       </div>
     </div>
+  );
+}
+
+function EmptyStateBackdrop() {
+  return (
+    <>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72 bg-[radial-gradient(ellipse_at_11%_0%,color-mix(in_oklab,var(--brand-lavender)_20%,transparent),transparent_58%),linear-gradient(135deg,color-mix(in_oklab,var(--brand-lavender)_12%,transparent),transparent_70%)] opacity-80 [mask-image:linear-gradient(to_bottom,black_0%,black_70%,transparent_100%)] dark:opacity-35"
+      />
+      <WaveDecoration
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-56 w-full opacity-60 [mask-image:linear-gradient(to_bottom,black,transparent)]"
+      />
+    </>
   );
 }
 
