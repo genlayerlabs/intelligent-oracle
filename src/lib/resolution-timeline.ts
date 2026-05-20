@@ -9,6 +9,7 @@ import {
   normalizeLeaderReceipt,
   parseEqOutput,
 } from "@/lib/transactions";
+import { getResolutionUnlockDate } from "@/lib/resolution-date";
 
 // Status the contract emits via get_dict() (see IntelligentOracle.py:14-16).
 const STATUS_ACTIVE = "Active";
@@ -22,6 +23,7 @@ export interface ResolutionSummaryActive {
   potentialOutcomes: string[];
   sources: ResolutionSource[];
   earliestResolutionDate?: string;
+  resolutionUnlockDate?: string;
   consensusReasoning?: string;
   consensusOutcome?: string;
 }
@@ -286,6 +288,14 @@ export function buildResolutionSummary(
       potentialOutcomes,
       sources,
       earliestResolutionDate: oracle.earliest_resolution_date,
+      resolutionUnlockDate: getResolutionUnlockDate({
+        earliestResolutionDate: oracle.earliest_resolution_date,
+        eventDateTexts: [
+          oracle.title,
+          oracle.description,
+          ...(oracle.rules ?? []),
+        ],
+      }),
       consensusReasoning: consensus?.reasoning,
       consensusOutcome: consensus?.outcome,
     };

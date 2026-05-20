@@ -79,6 +79,22 @@ describe("buildResolutionSummary", () => {
     expect(summary.title).toBe("Will Team A win?");
     expect(summary.sources).toEqual([{ kind: "domain", value: "league.example" }]);
     expect(summary.earliestResolutionDate).toBe("2026-06-01");
+    expect(summary.resolutionUnlockDate).toBe("2026-06-01");
+  });
+
+  it("pushes active unlock date after an explicit future event date", () => {
+    const summary = buildResolutionSummary(
+      makeOracle({
+        title: "Will ChatGPT be #1 on 2026-06-30?",
+        earliest_resolution_date: "2026-05-01",
+      }),
+      [],
+    );
+
+    expect(summary.status).toBe("active");
+    if (summary.status !== "active") return;
+    expect(summary.earliestResolutionDate).toBe("2026-05-01");
+    expect(summary.resolutionUnlockDate).toBe("2026-07-01");
   });
 
   it("returns resolved with decoded validator outputs when status is Resolved", () => {

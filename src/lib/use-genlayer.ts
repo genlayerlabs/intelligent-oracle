@@ -3,7 +3,7 @@
 import { createClient } from "genlayer-js";
 import { type Address, type CalldataEncodable, TransactionStatus } from "genlayer-js/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import {
   extractOracleAddressFromReceipt,
   genLayerChain,
@@ -18,6 +18,14 @@ import {
   parseOracleConfig,
 } from "@/lib/oracle-config";
 import type { CreateOracleResult, Oracle, OracleConfig, Transaction } from "@/lib/types";
+import {
+  addOrUpdateWalletChain,
+  assertPublicRpcConfiguration,
+  assertWalletRpcReachable,
+  ensureWalletChain,
+  normalizeWalletError,
+  type WalletRpcProvider,
+} from "@/lib/wallet-rpc";
 
 const ORACLES_STORAGE_KEY = "io-explorer.oracles";
 
@@ -98,22 +106,27 @@ function normalizeTransaction(value: unknown): Transaction {
   return value && typeof value === "object" ? (value as Transaction) : {};
 }
 
-function normalizeWalletError(error: unknown, fallback: string) {
+function normalizeReadError(error: unknown, fallback: string) {
   const message = error instanceof Error ? error.message : String(error || "");
 
-  if (/user rejected|user denied|rejected request|request rejected|denied transaction|cancelled|canceled/i.test(message)) {
-    return "Request cancelled in your wallet.";
+  if (/server busy|execution slots occupied|retry later/i.test(message)) {
+    return "GenLayer Studio RPC is busy. Wait a moment, then refresh.";
   }
 
-  if (/insufficient funds|not enough balance/i.test(message)) {
-    return "This wallet does not have enough funds for the transaction.";
+  if (/failed to fetch|network|fetch failed/i.test(message)) {
+    return "Unable to reach GenLayer Studio RPC. Check the RPC URL or try again in a moment.";
   }
 
-  if (/chain|network|switch/i.test(message)) {
-    return "Switch networks in your wallet and try again.";
-  }
+  return message || fallback;
+}
 
-  return fallback;
+function isPendingResolutionTimeout(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || "");
+  const match = message.match(/Timed out waiting for transaction .*current status: (\d+)/i);
+  if (!match) return false;
+  // 1-4 are PENDING/PROPOSING/COMMITTING/REVEALING. These are still in-flight,
+  // not failed. Resolution can take longer than the SDK default wait window.
+  return ["1", "2", "3", "4"].includes(match[1]);
 }
 
 export function useGenLayer() {
@@ -122,7 +135,6 @@ export function useGenLayer() {
   const endpoint = getGenLayerRpcUrl();
   const { address: walletAddress, connector, isConnected } = useAccount();
   const chainId = useChainId();
-  const { switchChainAsync } = useSwitchChain();
   const ready = Boolean(factoryAddress);
   const walletConnected = Boolean(isConnected && walletAddress && connector);
   const wrongNetwork = walletConnected && chainId !== genLayerChain.id;
@@ -139,17 +151,9 @@ export function useGenLayer() {
     [endpoint],
   );
 
-  const getWriteClient = useCallback(async () => {
+  const getWalletProvider = useCallback(async () => {
     if (!walletAddress || !connector) {
       throw new Error("Connect your wallet to continue.");
-    }
-
-    try {
-      if (chainId !== genLayerChain.id) {
-        await switchChainAsync({ chainId: genLayerChain.id });
-      }
-    } catch (error) {
-      throw new Error(normalizeWalletError(error, "Switch networks in your wallet and try again."));
     }
 
     const provider = await connector.getProvider().catch(() => null);
@@ -157,31 +161,80 @@ export function useGenLayer() {
       throw new Error("Reconnect your wallet and try again.");
     }
 
+    return provider as GenLayerProvider & WalletRpcProvider;
+  }, [connector, walletAddress]);
+
+  const getStudioWalletTarget = useCallback(() => ({
+    chainId: genLayerChain.id,
+    chainName: genLayerChain.name,
+    nativeCurrency: genLayerChain.nativeCurrency,
+    rpcUrl: endpoint,
+  }), [endpoint]);
+
+  const setupStudioNetwork = useCallback(async () => {
+    const origin = typeof window === "undefined" ? undefined : window.location.origin;
+    assertPublicRpcConfiguration(endpoint, origin);
+
+    const walletProvider = await getWalletProvider();
+    const target = getStudioWalletTarget();
+
+    try {
+      await ensureWalletChain(walletProvider, target);
+      await assertWalletRpcReachable(walletProvider, endpoint, origin);
+    } catch (error) {
+      if (error instanceof Error && /cannot reach|failed to fetch|rpc/i.test(error.message)) {
+        await addOrUpdateWalletChain(walletProvider, target);
+        await assertWalletRpcReachable(walletProvider, endpoint, origin);
+        return;
+      }
+
+      throw new Error(normalizeWalletError(error, "Unable to add or switch to Studio Network."));
+    }
+  }, [endpoint, getStudioWalletTarget, getWalletProvider]);
+
+  const getWriteClient = useCallback(async () => {
+    const origin = typeof window === "undefined" ? undefined : window.location.origin;
+    assertPublicRpcConfiguration(endpoint, origin);
+
+    const walletProvider = await getWalletProvider();
+    try {
+      await ensureWalletChain(walletProvider, getStudioWalletTarget());
+      await assertWalletRpcReachable(walletProvider, endpoint, origin);
+    } catch (error) {
+      throw new Error(normalizeWalletError(error, "Switch to Studio Network in your wallet and try again."));
+    }
+
     return createClient({
       chain: genLayerChain,
       account: walletAddress as Address,
-      provider: provider as GenLayerProvider,
+      provider: walletProvider,
       endpoint,
     });
-  }, [chainId, connector, endpoint, switchChainAsync, walletAddress]);
+  }, [endpoint, getStudioWalletTarget, getWalletProvider, walletAddress]);
 
   const fetchOracle = useCallback(async (address: Address) => {
-    const result = await readClient.readContract({
-      address,
-      functionName: "get_dict",
-      args: [],
-    });
-    const oracle = normalizeOracle(address, result);
+    try {
+      const result = await readClient.readContract({
+        address,
+        functionName: "get_dict",
+        args: [],
+      });
+      const oracle = normalizeOracle(address, result);
 
-    setOracles((current) => {
-      const next = current.some((item) => item.address === address)
-        ? current.map((item) => (item.address === address ? oracle : item))
-        : [...current, oracle];
-      saveCachedOracles(next);
-      return next;
-    });
+      setOracles((current) => {
+        const next = current.some((item) => item.address === address)
+          ? current.map((item) => (item.address === address ? oracle : item))
+          : [...current, oracle];
+        saveCachedOracles(next);
+        return next;
+      });
 
-    return oracle;
+      return oracle;
+    } catch (error) {
+      const message = normalizeReadError(error, "Unable to fetch oracle.");
+      setLastError(message);
+      throw new Error(message);
+    }
   }, [readClient]);
 
   const refreshOracles = useCallback(async () => {
@@ -208,7 +261,7 @@ export function useGenLayer() {
       setOracles(next);
       saveCachedOracles(next);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to refresh markets.";
+      const message = normalizeReadError(error, "Unable to refresh markets.");
       setLastError(message);
     } finally {
       setLoading(false);
@@ -223,7 +276,7 @@ export function useGenLayer() {
       });
       return Array.isArray(result) ? result.map(normalizeTransaction) : [];
     } catch (error) {
-      setLastError(error instanceof Error ? error.message : "Unable to fetch transactions.");
+      setLastError(normalizeReadError(error, "Unable to fetch transactions."));
       return [];
     }
   }, [readClient]);
@@ -311,10 +364,18 @@ export function useGenLayer() {
       throw new Error(normalizeWalletError(error, "Unable to submit this resolution. Check your wallet and try again."));
     }
 
-    await readClient.waitForTransactionReceipt({
-      hash,
-      status: TransactionStatus.ACCEPTED,
-    });
+    try {
+      await readClient.waitForTransactionReceipt({
+        hash,
+        status: TransactionStatus.ACCEPTED,
+        interval: 2000,
+        retries: 90,
+      });
+    } catch (error) {
+      if (!isPendingResolutionTimeout(error)) {
+        throw error;
+      }
+    }
 
     return hash;
   }, [getWriteClient, readClient]);
@@ -328,6 +389,7 @@ export function useGenLayer() {
     oracles,
     loading,
     lastError,
+    setupStudioNetwork,
     refreshOracles,
     fetchOracle,
     fetchTransactions,

@@ -16,6 +16,17 @@ _STATUS_RESOLVED = "Resolved"
 _STATUS_ERROR = "Error"
 
 
+def _normalize_domain(value: str) -> str:
+    raw = value.strip().lower()
+    if not raw:
+        return ""
+
+    candidate = raw if re.match(r"^[a-z][a-z0-9+\-.]*://", raw) else f"https://{raw}"
+    parsed_url = urlparse(candidate)
+    domain = parsed_url.netloc or parsed_url.path.split("/")[0]
+    return domain.replace("www.", "")
+
+
 class IntelligentOracle(gl.Contract):
     # Persistent storage fields
     prediction_market_id: str
@@ -77,13 +88,7 @@ class IntelligentOracle(gl.Contract):
             self.rules.append(rule)
 
         for datasource in data_source_domains:
-            self.data_source_domains.append(
-                datasource.strip()
-                .lower()
-                .replace("http://", "")
-                .replace("https://", "")
-                .replace("www.", "")
-            )
+            self.data_source_domains.append(_normalize_domain(datasource))
 
         for url in resolution_urls:
             self.resolution_urls.append(url.strip())
@@ -96,8 +101,7 @@ class IntelligentOracle(gl.Contract):
     @gl.public.view
     def _check_evidence_domain(self, evidence: str) -> bool:
         try:
-            parsed_url = urlparse(evidence)
-            evidence_domain = parsed_url.netloc.lower().replace("www.", "")
+            evidence_domain = _normalize_domain(evidence)
             return evidence_domain in self.data_source_domains
         except Exception:
             return False

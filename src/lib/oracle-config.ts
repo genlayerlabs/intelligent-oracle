@@ -1,4 +1,6 @@
 import { z, type ZodError } from "zod";
+import { normalizeSourceDomain } from "@/lib/evidence-url";
+import { isIsoDateOnly, latestIsoDateFromText, utcDateOnly } from "@/lib/resolution-date";
 
 const optionalTrimmedString = z.string().trim().optional();
 
@@ -6,11 +8,8 @@ const dateString = z
   .string({ error: "Resolution date is required." })
   .trim()
   .min(1, "Resolution date is required.")
-  .refine((value) => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-    const date = new Date(`${value}T00:00:00.000Z`);
-    return !Number.isNaN(date.getTime()) && value === date.toISOString().slice(0, 10);
-  }, "Resolution date must use YYYY-MM-DD.");
+  .refine(isIsoDateOnly, "Resolution date must use YYYY-MM-DD.")
+  .refine((value) => value >= utcDateOnly(), "Resolution date must be today or later.");
 
 export const oracleConfigCandidateSchema = z.object({
   predictionMarketId: optionalTrimmedString,
@@ -55,6 +54,19 @@ export const oracleConfigSchema = z.object({
       path: ["resolutionURLs"],
     });
   }
+
+  const latestEventDate = latestIsoDateFromText([
+    config.title,
+    config.description,
+    ...config.rules,
+  ]);
+  if (latestEventDate && config.earliestResolutionDate <= latestEventDate) {
+    context.addIssue({
+      code: "custom",
+      message: `Resolution date must be after the market event date (${latestEventDate}).`,
+      path: ["earliestResolutionDate"],
+    });
+  }
 });
 
 export const oracleConfigDraftSchema = z.object({
@@ -73,10 +85,9 @@ export const oracleConfigDraftSchema = z.object({
     .trim()
     .refine((value) => {
       if (value === "") return true;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-      const date = new Date(`${value}T00:00:00.000Z`);
-      return !Number.isNaN(date.getTime()) && value === date.toISOString().slice(0, 10);
+      return isIsoDateOnly(value);
     }, "Use a valid date (YYYY-MM-DD).")
+    .refine((value) => value === "" || value >= utcDateOnly(), "Use today or a future resolution date.")
     .optional(),
 }).superRefine((config, context) => {
   const hasDomains = (config.dataSourceDomains ?? []).filter((value) => value.trim()).length > 0;
@@ -86,6 +97,20 @@ export const oracleConfigDraftSchema = z.object({
       code: "custom",
       message: "Pick one — domains or URLs, not both.",
       path: ["resolutionURLs"],
+    });
+  }
+
+  const earliestResolutionDate = config.earliestResolutionDate?.trim();
+  const latestEventDate = latestIsoDateFromText([
+    config.title,
+    config.description,
+    ...(config.rules ?? []),
+  ]);
+  if (earliestResolutionDate && latestEventDate && earliestResolutionDate <= latestEventDate) {
+    context.addIssue({
+      code: "custom",
+      message: `Use a resolution date after the market event date (${latestEventDate}).`,
+      path: ["earliestResolutionDate"],
     });
   }
 });
@@ -137,7 +162,7 @@ export function oracleConfigToDeploymentArgs(config: z.infer<typeof oracleConfig
     config.description,
     config.potentialOutcomes,
     config.rules,
-    config.dataSourceDomains,
+    config.dataSourceDomains.map(normalizeSourceDomain).filter(Boolean),
     config.resolutionURLs,
     config.earliestResolutionDate,
   ];

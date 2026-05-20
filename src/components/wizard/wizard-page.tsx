@@ -425,6 +425,10 @@ function diffFieldCount(a: OracleConfigCandidate, b: OracleConfigCandidate): num
   return n;
 }
 
+function shouldShowStudioNetworkAction(error: string) {
+  return /add.*studio network|switch.*studio network|wallet cannot reach the genlayer rpc|should not require funded gen|chain minimum/i.test(error);
+}
+
 const TOTAL_DRAFT_FIELDS = 6;
 
 // WizardChat draft state machine:
@@ -456,6 +460,7 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
   const [createdOracleAddress, setCreatedOracleAddress] = useState("");
   const [creationStatus, setCreationStatus] = useState(CreationStatus.None);
   const [creationError, setCreationError] = useState("");
+  const [walletSetupLoading, setWalletSetupLoading] = useState(false);
   const [pasteOpen, setPasteOpen] = useState(false);
   const [editedDraft, setEditedDraft] = useState<OracleConfigCandidate | null>(null);
   const [pendingDraftMessageId, setPendingDraftMessageId] = useState<string | null>(null);
@@ -463,7 +468,7 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [userHasEdited, setUserHasEdited] = useState(false);
   const lastAppliedDraftIdRef = useRef<string | null>(null);
-  const { createOracle, walletConnected } = useGenLayer();
+  const { createOracle, setupStudioNetwork, walletConnected } = useGenLayer();
   const openWalletConnection = useOpenWalletConnection("Connect your wallet to create this market.");
 
   const {
@@ -687,6 +692,25 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
     }
   }
 
+  async function setupWalletNetwork() {
+    if (!walletConnected) {
+      openWalletConnection();
+      setCreationError("Connect your wallet to add Studio Network.");
+      return;
+    }
+
+    try {
+      setWalletSetupLoading(true);
+      await setupStudioNetwork();
+      setCreationError("");
+    } catch (setupError) {
+      console.error("Error setting up Studio Network:", setupError);
+      setCreationError(setupError instanceof Error ? setupError.message : "Unable to add or switch to Studio Network.");
+    } finally {
+      setWalletSetupLoading(false);
+    }
+  }
+
   function resetConversation() {
     clearSession();
     setCreatedOracleAddress("");
@@ -831,12 +855,14 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
           onDismissPending={dismissPendingDraft}
           onFieldBlur={markFieldTouched}
           onFieldChange={updateDraftField}
+          onSetupStudioNetwork={setupWalletNetwork}
           onStop={() => void stop()}
           pendingChangeCount={pendingChangeCount}
           pendingDraft={pendingDraft}
           status={draftPanelStatus}
           validationOk={strictValidation.success}
           walletConnected={walletConnected}
+          walletSetupLoading={walletSetupLoading}
         />
       </main>
 
@@ -1193,12 +1219,14 @@ function DraftPanel({
   onDismissPending,
   onFieldBlur,
   onFieldChange,
+  onSetupStudioNetwork,
   onStop,
   pendingChangeCount,
   pendingDraft,
   status,
   validationOk,
   walletConnected,
+  walletSetupLoading,
 }: {
   copiedDraft: boolean;
   createdOracleAddress: string;
@@ -1217,12 +1245,14 @@ function DraftPanel({
   onDismissPending: () => void;
   onFieldBlur: (field: DraftFieldKey) => void;
   onFieldChange: <K extends keyof OracleConfigCandidate>(field: K, value: OracleConfigCandidate[K]) => void;
+  onSetupStudioNetwork: () => Promise<void>;
   onStop: () => void;
   pendingChangeCount: number;
   pendingDraft: boolean;
   status: DraftPanelStatus;
   validationOk: boolean;
   walletConnected: boolean;
+  walletSetupLoading: boolean;
 }) {
   // Stay clickable when invalid so submitAttempted can fire and reveal every gap.
   const createDisabled =
@@ -1301,7 +1331,20 @@ function DraftPanel({
         <div className="space-y-3 border-t border-black/10 bg-white/60 p-4 dark:border-white/10 dark:bg-white/5">
           {creationError ? (
             <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
-              {creationError}
+              <p>{creationError}</p>
+              {shouldShowStudioNetworkAction(creationError) ? (
+                <Button
+                  className="mt-3 border-destructive/30 bg-white/80 text-destructive hover:bg-destructive hover:text-white dark:bg-white/10"
+                  disabled={walletSetupLoading}
+                  onClick={() => void onSetupStudioNetwork()}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  {walletSetupLoading ? <Spinner /> : <Plus className="size-4" aria-hidden />}
+                  Add / switch Studio Network
+                </Button>
+              ) : null}
             </div>
           ) : null}
 
@@ -1961,10 +2004,11 @@ function DateField({
         <Input
           aria-invalid={error ? true : undefined}
           disabled={disabled}
+          inputMode="numeric"
           onBlur={onBlur}
           onChange={(event) => onChange(event.currentTarget.value)}
-          placeholder="2026-12-31"
-          type="date"
+          placeholder="YYYY-MM-DD"
+          type="text"
           value={value ?? ""}
         />
       )}

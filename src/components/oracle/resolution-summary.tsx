@@ -157,7 +157,14 @@ export function ResolutionSummaryPanel({ summary }: ResolutionSummaryPanelProps)
 
         <ConsensusReasoning text={summary.consensusReasoning} />
 
-        {summary.earliestResolutionDate ? (
+        {summary.resolutionUnlockDate ? (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Resolution opens: {summary.resolutionUnlockDate}
+            {summary.earliestResolutionDate && summary.earliestResolutionDate !== summary.resolutionUnlockDate
+              ? ` (on-chain earliest date: ${summary.earliestResolutionDate})`
+              : ""}
+          </p>
+        ) : summary.earliestResolutionDate ? (
           <p className="mt-3 text-xs text-muted-foreground">
             Earliest resolution: {summary.earliestResolutionDate}
           </p>
