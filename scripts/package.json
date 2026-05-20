@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "dotenv": "^17.4.2",
-    "genlayer-js": "^1.1.7"
+    "genlayer-js": "^1.1.8"
   },
   "scripts": {
     "deploy": "tsx deploy.ts"
