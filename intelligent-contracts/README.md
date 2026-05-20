@@ -67,10 +67,13 @@ The `IntelligentOracle` contract is an AI-powered oracle that resolves predictio
 
 ### Deployment Instructions
 
+Deployment lives in the separate `scripts/` package at repo root.
+
 1. **Environment Setup**
-   First, make sure you have a `.env` file in your project root with the RPC URL:
-   ```
-   RPC_URL=your_rpc_endpoint_here
+   ```bash
+   cd scripts
+   cp .env.example .env
+   # fill in RPC URL and signer key
    ```
 
 2. **Install Dependencies**
@@ -84,26 +87,26 @@ The `IntelligentOracle` contract is an AI-powered oracle that resolves predictio
    ```
 
    The script will:
-   - Initialize a consensus smart contract
-   - Package and deploy the IntelligentOracleFactory contract
+   - Deploy the IntelligentOracleFactory contract
+   - Pass the IntelligentOracle source into the factory constructor so new markets can deploy oracle instances
    - Output the deployed contract address
-   - Save this address as you'll need it to interact with the contract
+   - Save this address as you'll need it to interact with the contract (paste into `NEXT_PUBLIC_ORACLE_FACTORY_ADDRESS` in the root app's `.env`)
 
 ### Creating New Prediction Markets
 
 Once deployed, you can create new prediction markets using the `create_new_prediction_market` method. Here's an example:
 
 ```javascript
-// First, initialize the client and account
+import { createAccount, createClient } from "genlayer-js";
+import { studionet } from "genlayer-js/chains";
+import { TransactionStatus } from "genlayer-js/types";
+
 const account = createAccount(bridgePrivateKey);
 const client = createClient({
-  chain: simulator,
-  account: account,
-  endpoint: simulatorUrl
+  chain: studionet,
+  account,
+  endpoint: rpcUrl || undefined
 });
-
-// Initialize consensus smart contract
-await client.initializeConsensusSmartContract();
 
 // Create a new prediction market
 const deploymentArgs = [
@@ -134,14 +137,17 @@ const registerContractTransactionHash = await client.writeContract({
   value: BigInt(0)
 });
 
-// Wait for transaction confirmation
 const receipt = await client.waitForTransactionReceipt({
   hash: registerContractTransactionHash,
-  status: TransactionStatus.ACCEPTED,
+  status: TransactionStatus.FINALIZED
+});
+const triggered = await client.getTriggeredTransactionIds({
+  hash: registerContractTransactionHash
 });
 
 // The receipt will contain the transaction details and deployment status
 console.log("Deployment receipt:", receipt);
+console.log("Triggered oracle deploy transactions:", triggered);
 ```
 
 Key points to remember:
@@ -171,4 +177,3 @@ registry.create_new_prediction_market(
 # Resolving an oracle with evidence
 oracle.resolve(evidence_url="https://trusted-domain.com/evidence")
 ```
-

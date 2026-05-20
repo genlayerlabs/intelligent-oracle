@@ -1,13 +1,17 @@
 {
+  "name": "intelligent-oracle-deploy",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Factory deployment scripts for the Intelligent Oracle (genlayer-js).",
+  "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.9.0",
-    "tsx": "^4.19.2"
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@types/jszip": "^3.4.0",
-    "dotenv": "^16.4.7",
-    "genlayer-js": "^0.6.4",
-    "jszip": "^3.10.1"
+    "dotenv": "^17.4.2",
+    "genlayer-js": "^1.1.7"
   },
   "scripts": {
     "deploy": "tsx deploy.ts"

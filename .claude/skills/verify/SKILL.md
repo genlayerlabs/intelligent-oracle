@@ -5,24 +5,19 @@ description: Run tests and build checks across the intelligent-oracle project. U
 
 Run the following verification steps and report results:
 
-1. **Python contract tests:**
+1. **Root app lint, typecheck, tests, and build:**
    ```bash
-   cd /Users/edgars/Dev/intelligent-oracle && pip install -r test/requirements.txt -q && pytest test/ -v
+   npm run check
    ```
 
-2. **Explorer build check:**
+2. **Production dependency audit:**
    ```bash
-   cd /Users/edgars/Dev/intelligent-oracle/explorer && npm run build
+   npm audit --omit=dev
    ```
 
-3. **Bridge build check:**
+3. **Python contract tests, optional when the GenLayer test environment is available:**
    ```bash
-   cd /Users/edgars/Dev/intelligent-oracle/bridge && npm run build
+   python3 -m venv .venv && . .venv/bin/activate && python -m pip install -r test/requirements.txt -q && python -m pytest test/ -v
    ```
 
-4. **UI Wizard build check:**
-   ```bash
-   cd /Users/edgars/Dev/intelligent-oracle/ui-wizard && npm run build
-   ```
-
-Report a summary of pass/fail for each step. If any step fails, show the relevant error output.
+Report a summary of pass/fail for each step. If any step fails, show the relevant error output. Do not run deployment commands as part of routine verification.
