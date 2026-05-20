@@ -62,6 +62,7 @@ Project-specific skills live in `.claude/skills/`. The GenLayer development skil
 - AI: Vercel AI SDK v6, `@ai-sdk/react`, `@openrouter/ai-sdk-provider`. Default model `openai/gpt-5-mini`.
 - GenLayer: `genlayer-js` 1.x plus Python GenVM contracts.
 - Tests: Vitest for shared TypeScript helpers, pytest for contract E2E.
+- Observability: Vercel Web Analytics + Speed Insights, mounted in `src/app/layout.tsx`.
 
 ## Wizard Architecture (`src/components/wizard/wizard-page.tsx`)
 

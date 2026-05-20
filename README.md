@@ -129,6 +129,7 @@ Repo URL, owner name, and optional Discord invite are centralized in `src/lib/si
 - Vercel AI SDK v6 with `@ai-sdk/react` and `@openrouter/ai-sdk-provider`
 - `genlayer-js` 1.x
 - GenVM Python intelligent contracts
+- Observability: Vercel Web Analytics + Speed Insights (mounted in `src/app/layout.tsx`)
 
 ## License
 
