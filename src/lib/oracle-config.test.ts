@@ -5,6 +5,7 @@ import {
   parseOracleConfig,
   parseOracleDraft,
 } from "@/lib/oracle-config";
+import { utcDateOnly } from "@/lib/resolution-date";
 
 const validConfig = {
   predictionMarketId: "42",
@@ -14,7 +15,7 @@ const validConfig = {
   rules: ["Use the official league result after full time."],
   dataSourceDomains: ["league.example"],
   resolutionURLs: [],
-  earliestResolutionDate: "2026-06-01",
+  earliestResolutionDate: "2099-06-01",
 };
 
 describe("oracle config validation", () => {
@@ -56,6 +57,60 @@ describe("oracle config validation", () => {
     expect(output.status).toBe("invalid");
     expect(output.issues.join(" ")).toContain("exactly two outcomes");
     expect(output.issues.join(" ")).toContain("YYYY-MM-DD");
+  });
+
+  it("accepts canonical ISO dates and rejects partial, localized, or impossible dates", () => {
+    expect(parseOracleConfig({ ...validConfig, earliestResolutionDate: "2099-12-26" }).success)
+      .toBe(true);
+
+    for (const earliestResolutionDate of ["2026-12-", "26/12/2026", "2026-02-31"]) {
+      const result = parseOracleConfig({ ...validConfig, earliestResolutionDate });
+
+      expect(result.success).toBe(false);
+      if (result.success) continue;
+      expect(result.error.issues.map((issue) => issue.message).join(" ")).toContain("YYYY-MM-DD");
+    }
+  });
+
+  it("rejects resolution dates before today", () => {
+    const output = evaluateOracleConfig({
+      ...validConfig,
+      earliestResolutionDate: "2000-01-01",
+    });
+
+    expect(output.status).toBe("invalid");
+    expect(output.issues.join(" ")).toContain("today or later");
+  });
+
+  it("accepts today's date for immediate resolution tests", () => {
+    expect(parseOracleConfig({ ...validConfig, earliestResolutionDate: utcDateOnly() }).success)
+      .toBe(true);
+  });
+
+  it("rejects a resolution date before an explicit ISO event date", () => {
+    const output = evaluateOracleConfig({
+      ...validConfig,
+      title: "Will ChatGPT be #1 on 2099-06-30?",
+      description: "Resolve the chart position on 2099-06-30.",
+      rules: ["Use Apple's chart for 2099-06-30."],
+      dataSourceDomains: ["https://apps.apple.com/us/charts/iphone"],
+      earliestResolutionDate: "2099-06-30",
+    });
+
+    expect(output.status).toBe("invalid");
+    expect(output.issues.join(" ")).toContain("after the market event date");
+  });
+
+  it("normalizes source domains before deployment", () => {
+    const parsed = parseOracleConfig({
+      ...validConfig,
+      dataSourceDomains: ["https://www.apps.apple.com/us/charts/iphone"],
+    });
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+
+    expect(oracleConfigToDeploymentArgs(parsed.data)[5]).toEqual(["apps.apple.com"]);
   });
 
   it("rejects more than two outcomes", () => {
@@ -109,10 +164,32 @@ describe("oracle draft schema", () => {
 
   it("accepts an empty earliestResolutionDate but rejects a malformed one", () => {
     expect(parseOracleDraft({ earliestResolutionDate: "" }).success).toBe(true);
-    const malformed = parseOracleDraft({ earliestResolutionDate: "06/01/2026" });
-    expect(malformed.success).toBe(false);
-    if (malformed.success) return;
-    expect(malformed.error.issues.map((issue) => issue.message).join(" ")).toContain("YYYY-MM-DD");
+    expect(parseOracleDraft({ earliestResolutionDate: "2099-12-26" }).success).toBe(true);
+
+    for (const earliestResolutionDate of ["06/01/2026", "2026-12-", "2026-02-31"]) {
+      const malformed = parseOracleDraft({ earliestResolutionDate });
+      expect(malformed.success).toBe(false);
+      if (malformed.success) continue;
+      expect(malformed.error.issues.map((issue) => issue.message).join(" ")).toContain("YYYY-MM-DD");
+    }
+  });
+
+  it("rejects a past draft resolution date", () => {
+    const result = parseOracleDraft({ earliestResolutionDate: "2000-01-01" });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.error.issues.map((issue) => issue.message).join(" ")).toContain("today or a future");
+  });
+
+  it("rejects a draft resolution date before an explicit ISO event date", () => {
+    const result = parseOracleDraft({
+      title: "Will ChatGPT be #1 on 2099-06-30?",
+      earliestResolutionDate: "2099-06-30",
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.error.issues.map((issue) => issue.message).join(" ")).toContain("after the market event date");
   });
 
   it("rejects mixing populated domains and URLs in a draft", () => {

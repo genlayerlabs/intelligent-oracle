@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, ExternalLink, RefreshCw, Rocket } from "lucide-react";
+import { Clock, Copy, ExternalLink, RefreshCw, Rocket } from "lucide-react";
 import type { Address } from "genlayer-js/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { normalizeEvidenceUrlForDomains, normalizeSourceDomain } from "@/lib/evidence-url";
 import type { Oracle, Transaction } from "@/lib/types";
 import {
   decodeBase64,
@@ -38,6 +39,7 @@ import {
   sanitizeTransactionForDisplay,
 } from "@/lib/transactions";
 import { buildResolutionSummary } from "@/lib/resolution-timeline";
+import { getResolutionUnlockDate, isResolutionLocked } from "@/lib/resolution-date";
 import { useGenLayer } from "@/lib/use-genlayer";
 import { useOpenWalletConnection } from "@/lib/use-privy-wallet";
 
@@ -60,6 +62,18 @@ function formatDate(dateString?: string | Date) {
   });
 }
 
+function formatDateOnly(dateString?: string | null) {
+  if (!dateString) return "the scheduled date";
+  const date = new Date(`${dateString}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function analysisText(analysis: Oracle["analysis"]) {
   if (!analysis) return "No analysis available";
   if (typeof analysis === "string") return analysis;
@@ -73,6 +87,22 @@ function transactionId(transaction: Transaction) {
 
 function transactionType(transaction: Transaction) {
   return transaction.data?.contract_address || transaction.txDataDecoded?.contractAddress ? "Creation" : "Resolution";
+}
+
+function oracleEventDateTexts(oracle?: Oracle) {
+  if (!oracle) return [];
+  return [
+    oracle.title,
+    oracle.description,
+    ...(oracle.rules ?? []),
+  ];
+}
+
+function evidencePlaceholder(oracle?: Oracle) {
+  const domain = (oracle?.data_source_domains ?? [])
+    .map(normalizeSourceDomain)
+    .find(Boolean);
+  return domain ? `https://${domain}/...` : "https://example.com/result";
 }
 
 export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
@@ -105,8 +135,19 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
   const [resolutionOpen, setResolutionOpen] = useState(false);
   const [resolutionEvidence, setResolutionEvidence] = useState("");
   const [resolutionError, setResolutionError] = useState("");
+  const [detailsError, setDetailsError] = useState("");
   const [resolving, setResolving] = useState(false);
   const [copyStatus, setCopyStatus] = useState("");
+  const resolutionUnlockDate = oracle
+    ? getResolutionUnlockDate({
+        earliestResolutionDate: oracle.earliest_resolution_date,
+        eventDateTexts: oracleEventDateTexts(oracle),
+      })
+    : undefined;
+  const resolutionLocked = oracle ? isResolutionLocked(oracle.earliest_resolution_date, new Date(), oracleEventDateTexts(oracle)) : false;
+  const resolutionLockedMessage = resolutionUnlockDate
+    ? `Resolution opens on ${formatDateOnly(resolutionUnlockDate)}. This oracle cannot be resolved before then.`
+    : "Resolution is not available yet.";
 
   useEffect(() => {
     const cached = oracles.find((item) => item.address === address);
@@ -116,12 +157,18 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
   const refreshOracle = useCallback(async () => {
     if (!ready) return;
     const oracleAddress = address as Address;
-    const [freshOracle, freshTransactions] = await Promise.all([
-      fetchOracle(oracleAddress),
-      fetchTransactions(oracleAddress),
-    ]);
-    setOracle(freshOracle);
-    setTransactions(freshTransactions);
+    try {
+      const [freshOracle, freshTransactions] = await Promise.all([
+        fetchOracle(oracleAddress),
+        fetchTransactions(oracleAddress),
+      ]);
+      setOracle(freshOracle);
+      setTransactions(freshTransactions);
+      setDetailsError("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to refresh oracle details.";
+      setDetailsError(message);
+    }
   }, [address, fetchOracle, fetchTransactions, ready]);
 
   useEffect(() => {
@@ -129,7 +176,8 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
 
     // Stop polling once the oracle reaches a terminal state — Resolved or Error
     // are both final per IntelligentOracle.py. Without this guard every open
-    // resolved-oracle tab burns RPC + battery every 5 seconds forever.
+    // resolved-oracle tab burns RPC + battery forever. Poll slowly because
+    // hosted Studio can reject reads when all execution slots are occupied.
     const terminalStatus = oracle?.status === "Resolved" || oracle?.status === "Error";
     if (terminalStatus) return;
 
@@ -139,8 +187,8 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
       await refreshOracle();
     };
 
-    void refresh();
-    const interval = window.setInterval(refresh, 5000);
+    void refresh().catch(() => undefined);
+    const interval = window.setInterval(refresh, 15000);
     return () => {
       cancelled = true;
       window.clearInterval(interval);
@@ -154,13 +202,20 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
   }
 
   function openResolution() {
+    if (!oracle) return;
+
+    if (resolutionLocked) {
+      setResolutionError(resolutionLockedMessage);
+      return;
+    }
+
     if (!walletConnected) {
       openWalletConnection();
       setResolutionError("Connect your wallet to initiate resolution.");
       return;
     }
 
-    if (oracle?.resolution_urls && oracle.resolution_urls.length > 0) {
+    if (oracle.resolution_urls && oracle.resolution_urls.length > 0) {
       void submitResolution("");
       return;
     }
@@ -170,6 +225,17 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
   }
 
   async function submitResolution(evidence: string) {
+    if (!oracle) {
+      setResolutionError("Oracle details are still loading.");
+      return;
+    }
+
+    if (isResolutionLocked(oracle.earliest_resolution_date, new Date(), oracleEventDateTexts(oracle))) {
+      setResolutionOpen(false);
+      setResolutionError(resolutionLockedMessage);
+      return;
+    }
+
     if (!walletConnected) {
       openWalletConnection();
       setResolutionError("Connect your wallet to submit resolution.");
@@ -177,9 +243,20 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
     }
 
     try {
+      let evidenceForTx = evidence;
+      if ((oracle.resolution_urls ?? []).length === 0) {
+        const normalizedEvidence = normalizeEvidenceUrlForDomains(evidence, oracle.data_source_domains ?? []);
+        if (!normalizedEvidence.success) {
+          setResolutionError(normalizedEvidence.error);
+          return;
+        }
+        evidenceForTx = normalizedEvidence.url;
+        setResolutionEvidence(evidenceForTx);
+      }
+
       setResolving(true);
       setResolutionError("");
-      await resolveOracle(address as Address, evidence);
+      await resolveOracle(address as Address, evidenceForTx);
       await refreshOracle();
       setResolutionOpen(false);
       setResolutionEvidence("");
@@ -229,9 +306,9 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
                 {loading ? <Spinner /> : <RefreshCw className="size-4" aria-hidden />}
                 Refresh
               </Button>
-              <Button type="button" onClick={openResolution} disabled={!oracle || resolving} className="bg-black text-white hover:bg-[color:var(--brand-lavender)] dark:bg-white dark:text-black dark:hover:bg-[color:var(--brand-lavender)] dark:hover:text-white">
-                {resolving ? <Spinner /> : <Rocket className="size-4" aria-hidden />}
-                {resolving ? "Resolving" : "Initiate resolution"}
+              <Button type="button" onClick={openResolution} disabled={!oracle || resolving || resolutionLocked} title={resolutionLocked ? resolutionLockedMessage : undefined} className="bg-black text-white hover:bg-[color:var(--brand-lavender)] dark:bg-white dark:text-black dark:hover:bg-[color:var(--brand-lavender)] dark:hover:text-white">
+                {resolutionLocked ? <Clock className="size-4" aria-hidden /> : resolving ? <Spinner /> : <Rocket className="size-4" aria-hidden />}
+                {resolutionLocked ? `Opens ${formatDateOnly(resolutionUnlockDate)}` : resolving ? "Resolving" : "Initiate resolution"}
               </Button>
             </div>
           </div>
@@ -240,6 +317,12 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
         {lastError ? (
           <div className="mt-6 rounded-md border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
             {lastError}
+          </div>
+        ) : null}
+
+        {detailsError && detailsError !== lastError ? (
+          <div className="mt-6 rounded-md border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+            {detailsError}
           </div>
         ) : null}
 
@@ -295,7 +378,10 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
                   emptyText="This oracle uses dynamic evidence URLs."
                   linkValues
                 />
-                <DetailRow label="Earliest resolution" value={formatDate(oracle.earliest_resolution_date)} />
+                <DetailRow label="Resolution opens" value={formatDate(resolutionUnlockDate ?? oracle.earliest_resolution_date)} />
+                {resolutionUnlockDate && oracle.earliest_resolution_date && resolutionUnlockDate !== oracle.earliest_resolution_date ? (
+                  <DetailRow label="On-chain earliest resolution" value={formatDate(oracle.earliest_resolution_date)} />
+                ) : null}
                 <DetailRow label="Analysis" value={analysisText(oracle.analysis)} multiline />
               </dl>
             </section>
@@ -368,7 +454,7 @@ export function OracleDetailsPage({ address }: OracleDetailsPageProps) {
           <Input
             value={resolutionEvidence}
             onChange={(event) => setResolutionEvidence(event.currentTarget.value)}
-            placeholder="https://example.com/result"
+            placeholder={evidencePlaceholder(oracle)}
           />
           {resolutionError ? (
             <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">

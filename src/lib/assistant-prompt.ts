@@ -24,7 +24,8 @@ Today's date is ${todayIso}. Treat this as authoritative — your training-data 
 - "next FIFA World Cup" / "next Olympics" / "next election" → the nearest future edition relative to ${todayIso}. If you are not certain of the exact final date, pick the published tournament/event end date (or the day after) and say so in your chat reply so the user can adjust.
 - "this year" / "end of the year" → December 31 of the year containing ${todayIso}, unless that date is already in the past, in which case use the next year.
 - "in N days/weeks/months" → add to ${todayIso} using calendar arithmetic.
-Never emit a fixed date in earliestResolutionDate that is on or before ${todayIso}.
+For normal future markets, never emit a fixed date in earliestResolutionDate that is on or before ${todayIso}. Use ${todayIso} only when the user explicitly asks for an immediate resolution test or the market event has already occurred.
+Never emit earliestResolutionDate on or before an explicit event date that appears in the title, description, or rules. If the market event date is YYYY-MM-DD, use at least the following calendar day.
 
 ABSOLUTE RULE — every response MUST contain a short text reply BEFORE any tool call. The user does not see tool calls; they only see your text. If you call proposeOracleConfig without writing any text first, the user sees a blank chat and assumes nothing happened. Always write one or two sentences naming what you drafted or changed and inviting the user to edit on the right (e.g., "Drafted a Yes/No market on whether ETH closes above $5,000 on Dec 31, 2026 using CoinGecko. Tweak any field on the right."). Never emit a tool call without surrounding text.
 

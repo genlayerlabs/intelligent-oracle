@@ -134,11 +134,10 @@ export function ExplorerPage() {
           </div>
         </header>
 
-        <section className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mt-4 grid gap-3 sm:grid-cols-3">
           <Metric label="Total" value={counts.all} />
           <Metric label="Active" value={counts.active} />
           <Metric label="Resolved" value={counts.resolved} />
-          <Metric label="Needs attention" value={counts.error} />
         </section>
 
         <section className="brand-surface mt-4 overflow-hidden rounded-md">
