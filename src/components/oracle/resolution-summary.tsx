@@ -60,7 +60,7 @@ function ValidatorCard({ validator }: { validator: ResolutionValidator }) {
   const execution = validator.executionStatus?.trim();
   const showFailedExecution = execution && execution.toUpperCase() !== "SUCCESS";
   return (
-    <article className="flex h-full flex-col justify-between rounded-md border border-black/10 bg-white/55 p-4 dark:border-white/10 dark:bg-white/5">
+    <article className="flex h-full flex-col justify-between rounded-md border border-black/10 bg-white/55 p-4">
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
@@ -72,7 +72,7 @@ function ValidatorCard({ validator }: { validator: ResolutionValidator }) {
             </Badge>
           ) : null}
         </div>
-        <p className="max-h-48 overflow-auto whitespace-pre-wrap text-sm leading-relaxed text-black dark:text-white">
+        <p className="max-h-48 overflow-auto whitespace-pre-wrap text-sm leading-relaxed text-black">
           {reasoning}
         </p>
       </div>
@@ -122,7 +122,7 @@ function ValidatorGrid({ validators }: { validators: ResolutionValidator[] }) {
 function ConsensusReasoning({ text }: { text?: string }) {
   if (!text?.trim()) return null;
   return (
-    <p className="mt-5 max-w-3xl whitespace-pre-wrap text-sm leading-relaxed text-black/75 dark:text-white/75">
+    <p className="mt-5 max-w-3xl whitespace-pre-wrap text-sm leading-relaxed text-black/75">
       {text}
     </p>
   );
@@ -138,18 +138,18 @@ export function ResolutionSummaryPanel({ summary }: ResolutionSummaryPanelProps)
         <div className="space-y-1">
           <h2
             id="resolution-summary-heading"
-            className="text-2xl font-light tracking-normal text-black dark:text-white"
+            className="text-2xl font-light tracking-normal text-black"
           >
             Pending resolution
           </h2>
           {summary.title ? (
-            <p className="text-base text-black/60 dark:text-white/60">{summary.title}</p>
+            <p className="text-base text-black/60">{summary.title}</p>
           ) : null}
         </div>
 
         <SourcesRow sources={summary.sources} />
 
-        <p className="mt-5 max-w-2xl text-sm leading-relaxed text-black/75 dark:text-white/75">
+        <p className="mt-5 max-w-2xl text-sm leading-relaxed text-black/75">
           When the resolution date passes, validators independently read these sources and run the
           resolution prompt. The equivalence principle requires their outputs to agree before the
           outcome is recorded on-chain.
@@ -190,7 +190,7 @@ export function ResolutionSummaryPanel({ summary }: ResolutionSummaryPanelProps)
               Resolution failed
             </h2>
             {summary.title ? (
-              <p className="break-words text-base text-black/60 dark:text-white/60">{summary.title}</p>
+              <p className="break-words text-base text-black/60">{summary.title}</p>
             ) : null}
           </div>
           {timestampLabel ? (
@@ -211,7 +211,7 @@ export function ResolutionSummaryPanel({ summary }: ResolutionSummaryPanelProps)
         <ValidatorGrid validators={summary.validators} />
 
         {summary.validators.length === 0 && !summary.consensusReasoning ? (
-          <p className="mt-5 text-sm text-black/60 dark:text-white/60">
+          <p className="mt-5 text-sm text-black/60">
             The resolution attempt did not produce an outcome in the configured list. A creator can
             initiate another resolution attempt.
           </p>
@@ -232,12 +232,12 @@ export function ResolutionSummaryPanel({ summary }: ResolutionSummaryPanelProps)
         <div className="min-w-0 space-y-1">
           <h2
             id="resolution-summary-heading"
-            className="text-2xl font-light tracking-normal text-black dark:text-white sm:text-3xl"
+            className="text-2xl font-light tracking-normal text-black sm:text-3xl"
           >
             Outcome: {outcome}
           </h2>
           {title ? (
-            <p className="break-words text-base text-black/60 dark:text-white/60">{title}</p>
+            <p className="break-words text-base text-black/60">{title}</p>
           ) : null}
         </div>
         <Badge
@@ -262,7 +262,7 @@ export function ResolutionSummaryPanel({ summary }: ResolutionSummaryPanelProps)
       <ConsensusReasoning text={consensusReasoning} />
 
       {validators.length === 0 ? (
-        <p className="mt-5 max-w-2xl text-sm leading-relaxed text-black/60 dark:text-white/60">
+        <p className="mt-5 max-w-2xl text-sm leading-relaxed text-black/60">
           Resolved without recorded per-validator outputs (legacy or non-equivalence resolution).
         </p>
       ) : (

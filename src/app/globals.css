@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @source "../node_modules/streamdown/dist/*.js";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -91,39 +89,6 @@
   --gradient-brand-strong: linear-gradient(135deg, #110fff 0%, #9b6af6 50%, #e37df7 100%);
 }
 
-.dark {
-  --background: #0a0a14;
-  --foreground: #f5f5fa;
-  --card: #14141f;
-  --card-foreground: #f5f5fa;
-  --popover: #14141f;
-  --popover-foreground: #f5f5fa;
-  --primary: #9b6af6;
-  --primary-foreground: #0a0a14;
-  --secondary: #1f1f2e;
-  --secondary-foreground: #f5f5fa;
-  --muted: #1a1a26;
-  --muted-foreground: #9396a8;
-  --accent: #282b5d;
-  --accent-foreground: #e37df7;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #252535;
-  --input: #2a2a3d;
-  --ring: #9b6af6;
-
-  --surface: #14141f;
-  --surface-muted: #1a1a26;
-  --primary-text: #f5f5fa;
-  --secondary-text: #9396a8;
-  --highlight: #9b6af6;
-  --highlight-soft: #1f1f2e;
-  --accent-soft: #1f1a3a;
-  --warning-soft: #3a2f0f;
-  --danger: #ef4444;
-  --danger-soft: #3a1818;
-}
-
 html {
   scroll-behavior: smooth;
 }
@@ -186,38 +151,16 @@ pre {
   color: #2e2e2e;
 }
 
-.dark .brand-app-shell {
-  background-color: #0a0a14;
-  background-image:
-    linear-gradient(180deg, color-mix(in oklab, var(--brand-navy) 30%, transparent), transparent 22rem),
-    radial-gradient(
-      ellipse 70% 55% at 82% 8%,
-      color-mix(in oklab, var(--brand-lavender) 20%, transparent),
-      transparent 62%
-    );
-  color: #f5f5fa;
-}
-
 .brand-surface {
   border: 1px solid rgb(0 0 0 / 10%);
   background: rgb(255 255 255 / 68%);
   box-shadow: none;
 }
 
-.dark .brand-surface {
-  border-color: rgb(255 255 255 / 12%);
-  background: rgb(20 20 31 / 74%);
-}
-
 .brand-surface-solid {
   border: 1px solid rgb(0 0 0 / 10%);
   background: #ffffff;
   box-shadow: none;
-}
-
-.dark .brand-surface-solid {
-  border-color: rgb(255 255 255 / 12%);
-  background: #14141f;
 }
 
 .brand-icon-frame {
@@ -229,10 +172,4 @@ pre {
   border: 1px solid rgb(0 0 0 / 12%);
   background: rgb(255 255 255 / 70%);
   color: #2e2e2e;
-}
-
-.dark .brand-icon-frame {
-  border-color: rgb(255 255 255 / 16%);
-  background: rgb(255 255 255 / 7%);
-  color: #ffffff;
 }

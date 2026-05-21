@@ -732,34 +732,34 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
     isGenerating || creationStatus === CreationStatus.Creating || creationStatus === CreationStatus.Created;
 
   return (
-    <div className="brand-app-shell relative isolate min-h-screen overflow-hidden text-[#2e2e2e] dark:text-white">
+    <div className="brand-app-shell relative isolate min-h-screen overflow-hidden text-[#2e2e2e]">
       <AppHeader active="assistant" oracleAddress={createdOracleAddress} />
 
       <WaveDecoration
         aria-hidden
-        className="pointer-events-none fixed inset-x-0 top-20 -z-10 h-80 w-full opacity-50 [mask-image:linear-gradient(to_bottom,black,transparent)] dark:opacity-20"
+        className="pointer-events-none fixed inset-x-0 top-20 -z-10 h-80 w-full opacity-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"
       />
 
       <main className="relative z-10 mx-auto grid min-h-screen w-[90%] min-w-0 max-w-[1300px] gap-5 pb-8 pt-24 lg:grid-cols-[minmax(0,1fr)_420px]">
         <section className="brand-surface flex min-h-[calc(100dvh-7.5rem)] min-w-0 flex-col overflow-hidden rounded-md lg:h-[calc(100dvh-7.5rem)] lg:min-h-[32rem]">
-          <div className="flex flex-col gap-4 border-b border-black/10 bg-white/55 px-4 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/10 dark:bg-white/5">
+          <div className="flex flex-col gap-4 border-b border-black/10 bg-white/55 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-black/45 dark:text-white/45">
+              <p className="text-xs font-medium uppercase tracking-[0.22em] text-black/45">
                 Oracle Studio
               </p>
-              <h1 className="mt-1 text-xl font-medium leading-tight text-black dark:text-white">
+              <h1 className="mt-1 text-xl font-medium leading-tight text-black">
                 Assistant
               </h1>
-              <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+              <p className="mt-1 text-sm text-black/60">
                 Describe a market. The oracle config drafts on the right.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" onClick={() => setPasteOpen(true)} className="border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
+              <Button type="button" variant="outline" onClick={() => setPasteOpen(true)} className="border-black/15 bg-transparent text-black hover:bg-black hover:text-white">
                 <ClipboardPaste className="size-4" aria-hidden />
                 Paste JSON
               </Button>
-              <Button type="button" variant="outline" onClick={resetConversation} className="border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black">
+              <Button type="button" variant="outline" onClick={resetConversation} className="border-black/15 bg-transparent text-black hover:bg-black hover:text-white">
                 <Plus className="size-4" aria-hidden />
                 New oracle
               </Button>
@@ -813,7 +813,7 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
             <ConversationScrollButton />
           </Conversation>
 
-          <div className="border-t border-black/10 bg-white/70 p-3 dark:border-white/10 dark:bg-[#14141f]/90">
+          <div className="border-t border-black/10 bg-white/70 p-3">
             <PromptInput onSubmit={handleSubmit} className="mx-auto w-full max-w-3xl">
               <PromptInputTextarea
                 disabled={isGenerating}
@@ -823,7 +823,7 @@ function WizardChat({ session, onReset }: { session: ChatSession; onReset: (sess
               />
               <PromptInputFooter>
                 <PromptInputTools>
-                  <span className="px-2 text-xs text-black/45 dark:text-white/50">
+                  <span className="px-2 text-xs text-black/45">
                     {isGenerating ? "Drafting on the right" : "Enter to send"}
                   </span>
                 </PromptInputTools>
@@ -981,7 +981,7 @@ function EmptyStateHero({
   onExample: (prompt: string) => void;
 }) {
   return (
-    <div className="relative z-10 mx-auto flex w-full max-w-3xl min-w-0 flex-col gap-5 text-[#2e2e2e] dark:text-white [@media(max-height:860px)]:gap-4">
+    <div className="relative z-10 mx-auto flex w-full max-w-3xl min-w-0 flex-col gap-5 text-[#2e2e2e] [@media(max-height:860px)]:gap-4">
       <div className="min-w-0">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[image:var(--gradient-brand)] px-3 py-1 text-xs font-medium text-white">
           <BrandMark className="size-3" />
@@ -990,16 +990,16 @@ function EmptyStateHero({
         <h2 className="mt-3 text-5xl font-light leading-none tracking-normal sm:text-6xl [@media(max-height:860px)]:sm:text-5xl">
           Create an Intelligent Oracle
         </h2>
-        <p className="mt-3 max-w-2xl text-sm font-light leading-6 text-black/65 dark:text-white/65 sm:text-base">
+        <p className="mt-3 max-w-2xl text-sm font-light leading-6 text-black/65 sm:text-base">
           Describe a market in plain English. The on-chain config drafts on the right, field by field.
           Pick an example or type your own.
         </p>
       </div>
 
-      <div className="flex max-w-full flex-col gap-3 rounded-md border border-black/10 bg-white/65 p-3 text-sm shadow-sm shadow-black/[0.03] dark:border-white/10 dark:bg-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex max-w-full flex-col gap-3 rounded-md border border-black/10 bg-white/65 p-3 text-sm shadow-sm shadow-black/[0.03] sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="font-medium text-black dark:text-white">Use your own agent</p>
-          <p className="mt-1 max-w-xl break-words leading-6 text-black/60 dark:text-white/60">
+          <p className="font-medium text-black">Use your own agent</p>
+          <p className="mt-1 max-w-xl break-words leading-6 text-black/60">
             Open the Intelligent Oracle skill and use it with Codex, Claude Code, Cursor, or any agent that can read a URL.
           </p>
         </div>
@@ -1007,7 +1007,7 @@ function EmptyStateHero({
           asChild
           size="sm"
           variant="outline"
-          className="shrink-0 border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black"
+          className="shrink-0 border-black/15 bg-transparent text-black hover:bg-black hover:text-white"
         >
           <Link href="/skill.md" target="_blank" rel="noreferrer">
             Open skill
@@ -1019,17 +1019,17 @@ function EmptyStateHero({
       <div className="grid gap-3 sm:grid-cols-3">
         {STARTER_EXAMPLES.map((example) => (
           <button
-            className="brand-surface-solid group flex min-w-0 flex-col justify-between gap-3 rounded-md p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-lavender)]/50 hover:bg-[color:color-mix(in_oklab,var(--brand-lavender)_10%,white)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 dark:hover:bg-white/10 sm:min-h-32 [@media(max-height:860px)]:sm:min-h-28"
+            className="brand-surface-solid group flex min-w-0 flex-col justify-between gap-3 rounded-md p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[color:var(--brand-lavender)]/50 hover:bg-[color:color-mix(in_oklab,var(--brand-lavender)_10%,white)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 sm:min-h-32 [@media(max-height:860px)]:sm:min-h-28"
             disabled={disabled}
             key={example.title}
             onClick={() => onExample(example.prompt)}
             type="button"
           >
-            <span className="text-xs font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">
+            <span className="text-xs font-medium uppercase tracking-[0.18em] text-black/45">
               {example.title}
             </span>
-            <span className="text-sm font-medium leading-snug text-black dark:text-white">{example.hint}</span>
-            <span className="inline-flex items-center gap-1 text-xs text-black/55 transition-colors group-hover:text-[color:var(--brand-lavender)] dark:text-white/55">
+            <span className="text-sm font-medium leading-snug text-black">{example.hint}</span>
+            <span className="inline-flex items-center gap-1 text-xs text-black/55 transition-colors group-hover:text-[color:var(--brand-lavender)]">
               Try this <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" aria-hidden />
             </span>
           </button>
@@ -1044,7 +1044,7 @@ function EmptyStateBackdrop() {
     <>
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72 bg-[radial-gradient(ellipse_at_11%_0%,color-mix(in_oklab,var(--brand-lavender)_20%,transparent),transparent_58%),linear-gradient(135deg,color-mix(in_oklab,var(--brand-lavender)_12%,transparent),transparent_70%)] opacity-80 [mask-image:linear-gradient(to_bottom,black_0%,black_70%,transparent_100%)] dark:opacity-35"
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-72 bg-[radial-gradient(ellipse_at_11%_0%,color-mix(in_oklab,var(--brand-lavender)_20%,transparent),transparent_58%),linear-gradient(135deg,color-mix(in_oklab,var(--brand-lavender)_12%,transparent),transparent_70%)] opacity-80 [mask-image:linear-gradient(to_bottom,black_0%,black_70%,transparent_100%)]"
       />
       <WaveDecoration
         aria-hidden
@@ -1262,14 +1262,14 @@ function DraftPanel({
   return (
     <aside className="brand-surface min-h-[28rem] min-w-0 rounded-md lg:sticky lg:top-24 lg:h-[calc(100vh-7.5rem)]">
       <div className="flex h-full flex-col">
-        <div className="border-b border-black/10 bg-white/60 p-4 dark:border-white/10 dark:bg-white/5">
+        <div className="border-b border-black/10 bg-white/60 p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-black/45 dark:text-white/45">
+              <p className="text-xs font-medium uppercase tracking-[0.22em] text-black/45">
                 Review
               </p>
-              <h2 className="mt-1 text-xl font-medium leading-tight text-black dark:text-white">Market Draft</h2>
-              <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+              <h2 className="mt-1 text-xl font-medium leading-tight text-black">Market Draft</h2>
+              <p className="mt-1 text-sm text-black/60">
                 {status === "empty"
                   ? "Will fill as you describe the market."
                   : status === "drafting"
@@ -1288,7 +1288,7 @@ function DraftPanel({
             <div className="flex items-center gap-2">
               <StatusPill filledCount={filledCount} status={status} />
               {isGenerating ? (
-                <Button onClick={onStop} size="sm" type="button" variant="ghost" className="text-black/65 hover:text-black dark:text-white/65 dark:hover:text-white">
+                <Button onClick={onStop} size="sm" type="button" variant="ghost" className="text-black/65 hover:text-black">
                   <X className="size-4" aria-hidden />
                   Stop
                 </Button>
@@ -1296,8 +1296,8 @@ function DraftPanel({
             </div>
           </div>
           {pendingDraft ? (
-            <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-[color:var(--brand-lavender)]/30 bg-[color:color-mix(in_oklab,var(--brand-lavender)_10%,white)] px-3 py-2 text-xs dark:bg-white/10">
-              <span className="text-black/60 dark:text-white/65">
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-[color:var(--brand-lavender)]/30 bg-[color:color-mix(in_oklab,var(--brand-lavender)_10%,white)] px-3 py-2 text-xs">
+              <span className="text-black/60">
                 {pendingChangeCount > 0
                   ? `New AI draft ready — ${pendingChangeCount} ${pendingChangeCount === 1 ? "change" : "changes"}.`
                   : "New AI draft ready."}
@@ -1306,7 +1306,7 @@ function DraftPanel({
                 <Button onClick={onDismissPending} size="sm" type="button" variant="ghost">
                   Keep my edits
                 </Button>
-                <Button onClick={onApplyPending} size="sm" type="button" className="bg-black text-white hover:bg-[color:var(--brand-lavender)] dark:bg-white dark:text-black dark:hover:bg-[color:var(--brand-lavender)] dark:hover:text-white">
+                <Button onClick={onApplyPending} size="sm" type="button" className="bg-black text-white hover:bg-[color:var(--brand-lavender)]">
                   Use AI draft
                 </Button>
               </div>
@@ -1328,13 +1328,13 @@ function DraftPanel({
           />
         </div>
 
-        <div className="space-y-3 border-t border-black/10 bg-white/60 p-4 dark:border-white/10 dark:bg-white/5">
+        <div className="space-y-3 border-t border-black/10 bg-white/60 p-4">
           {creationError ? (
             <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
               <p>{creationError}</p>
               {shouldShowStudioNetworkAction(creationError) ? (
                 <Button
-                  className="mt-3 border-destructive/30 bg-white/80 text-destructive hover:bg-destructive hover:text-white dark:bg-white/10"
+                  className="mt-3 border-destructive/30 bg-white/80 text-destructive hover:bg-destructive hover:text-white"
                   disabled={walletSetupLoading}
                   onClick={() => void onSetupStudioNetwork()}
                   size="sm"
@@ -1349,9 +1349,9 @@ function DraftPanel({
           ) : null}
 
           {createdOracleAddress ? (
-            <div className="rounded-md border border-[color:var(--brand-lavender)]/30 bg-[color:color-mix(in_oklab,var(--brand-lavender)_12%,white)] p-3 text-sm dark:bg-white/10">
-              <p className="font-medium text-black dark:text-white">Oracle created</p>
-              <p className="mt-1 break-all font-mono text-xs text-black/65 dark:text-white/65">{createdOracleAddress}</p>
+            <div className="rounded-md border border-[color:var(--brand-lavender)]/30 bg-[color:color-mix(in_oklab,var(--brand-lavender)_12%,white)] p-3 text-sm">
+              <p className="font-medium text-black">Oracle created</p>
+              <p className="mt-1 break-all font-mono text-xs text-black/65">{createdOracleAddress}</p>
               <Button asChild className="mt-3 w-full bg-black text-white hover:bg-[color:var(--brand-lavender)]">
                 <Link href={`/oracle/${createdOracleAddress}`}>
                   View in explorer
@@ -1367,7 +1367,7 @@ function DraftPanel({
               onClick={() => void onCopy()}
               type="button"
               variant="outline"
-              className="border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black"
+              className="border-black/15 bg-transparent text-black hover:bg-black hover:text-white"
             >
               <Clipboard className="size-4" aria-hidden />
               {copiedDraft ? "Copied" : "Copy JSON"}
@@ -1376,7 +1376,7 @@ function DraftPanel({
               disabled={createDisabled}
               onClick={() => void onCreate()}
               type="button"
-              className="bg-black text-white hover:bg-[color:var(--brand-lavender)] dark:bg-white dark:text-black dark:hover:bg-[color:var(--brand-lavender)] dark:hover:text-white"
+              className="bg-black text-white hover:bg-[color:var(--brand-lavender)]"
             >
               {creationStatus === CreationStatus.Creating ? <Spinner /> : <Rocket className="size-4" aria-hidden />}
               {getCreateButtonText(creationStatus, walletConnected)}
@@ -1408,15 +1408,15 @@ function getDraftStatusInfo(status: DraftPanelStatus, filledCount: number) {
       label: "Created",
     },
     creating: {
-      badgeClassName: "border-black/10 bg-white/70 text-black dark:border-white/15 dark:bg-white/10 dark:text-white",
+      badgeClassName: "border-black/10 bg-white/70 text-black",
       label: "Creating",
     },
     drafting: {
-      badgeClassName: "border-[color:var(--brand-blue)]/20 bg-[color:color-mix(in_oklab,var(--brand-blue)_8%,transparent)] text-[color:var(--brand-blue)] dark:text-white",
+      badgeClassName: "border-[color:var(--brand-blue)]/20 bg-[color:color-mix(in_oklab,var(--brand-blue)_8%,transparent)] text-[color:var(--brand-blue)]",
       label: `Drafting · ${filledCount} of ${TOTAL_DRAFT_FIELDS}`,
     },
     empty: {
-      badgeClassName: "border-black/10 bg-white/60 text-black/55 dark:border-white/15 dark:bg-white/10 dark:text-white/60",
+      badgeClassName: "border-black/10 bg-white/60 text-black/55",
       label: `${filledCount} of ${TOTAL_DRAFT_FIELDS} fields`,
     },
     failed: {
@@ -1481,7 +1481,7 @@ function DraftFormView({
   return (
     <div className="space-y-3">
       {showHelper ? (
-        <div className="rounded-md border border-dashed border-black/15 bg-white/50 p-3 text-xs text-black/55 dark:border-white/15 dark:bg-white/5 dark:text-white/55">
+        <div className="rounded-md border border-dashed border-black/15 bg-white/50 p-3 text-xs text-black/55">
           As you describe the market in chat, each field below will populate. You can edit any field
           inline once it appears.
         </div>
@@ -1572,17 +1572,17 @@ function FieldShell({
   return (
     <section
       className={cn(
-        "space-y-2.5 rounded-md border bg-white/70 px-4 py-3.5 transition-colors dark:bg-white/[0.04]",
+        "space-y-2.5 rounded-md border bg-white/70 px-4 py-3.5 transition-colors",
         error
           ? "border-destructive/40"
-          : "border-black/10 dark:border-white/10",
+          : "border-black/10",
       )}
     >
       <div className="flex items-center gap-2">
         <span className={cn("brand-icon-frame size-8 shrink-0", error ? "border-destructive/30 text-destructive" : "")}>{icon}</span>
-        <h4 className="text-sm font-semibold text-black dark:text-white">{label}</h4>
+        <h4 className="text-sm font-semibold text-black">{label}</h4>
       </div>
-      {hint ? <p className="text-xs text-black/50 dark:text-white/50">{hint}</p> : null}
+      {hint ? <p className="text-xs text-black/50">{hint}</p> : null}
       {children}
       {error ? (
         <p className="flex items-start gap-1.5 text-xs text-destructive">
@@ -1595,7 +1595,7 @@ function FieldShell({
 }
 
 function FieldSkeleton({ height = "h-9", width = "w-full" }: { height?: string; width?: string }) {
-  return <div className={`${height} ${width} animate-pulse rounded-md bg-black/10 dark:bg-white/10`} aria-hidden />;
+  return <div className={`${height} ${width} animate-pulse rounded-md bg-black/10 `} aria-hidden />;
 }
 
 function shouldShowSkeleton(value: unknown, isGenerating: boolean) {
@@ -1815,7 +1815,7 @@ function RulesField({
             size="sm"
             type="button"
             variant="outline"
-            className="mt-2 border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black"
+            className="mt-2 border-black/15 bg-transparent text-black hover:bg-black hover:text-white"
           >
             <Plus className="size-4" aria-hidden />
             Add rule
@@ -1906,10 +1906,10 @@ function SourcesField({
       icon={<Icon className="size-4" aria-hidden />}
       label="Resolution sources"
     >
-      <div className="inline-flex rounded-md border border-black/10 bg-white/70 p-0.5 text-xs dark:border-white/10 dark:bg-white/5">
+      <div className="inline-flex rounded-md border border-black/10 bg-white/70 p-0.5 text-xs">
         <button
           className={`rounded-sm px-3 py-1 transition-colors ${
-            mode === "domains" ? "bg-black text-white dark:bg-white dark:text-black" : "text-black/55 hover:text-black dark:text-white/55 dark:hover:text-white"
+            mode === "domains" ? "bg-black text-white" : "text-black/55 hover:text-black"
           }`}
           disabled={disabled}
           onClick={() => switchMode("domains")}
@@ -1919,7 +1919,7 @@ function SourcesField({
         </button>
         <button
           className={`rounded-sm px-3 py-1 transition-colors ${
-            mode === "urls" ? "bg-black text-white dark:bg-white dark:text-black" : "text-black/55 hover:text-black dark:text-white/55 dark:hover:text-white"
+            mode === "urls" ? "bg-black text-white" : "text-black/55 hover:text-black"
           }`}
           disabled={disabled}
           onClick={() => switchMode("urls")}
@@ -1964,7 +1964,7 @@ function SourcesField({
             size="sm"
             type="button"
             variant="outline"
-            className="mt-2 border-black/15 bg-transparent text-black hover:bg-black hover:text-white dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black"
+            className="mt-2 border-black/15 bg-transparent text-black hover:bg-black hover:text-white"
           >
             <Plus className="size-4" aria-hidden />
             Add {mode === "domains" ? "domain" : "URL"}
@@ -2027,7 +2027,7 @@ export function WizardPage() {
     return (
       <div className="brand-app-shell min-h-screen">
         <AppHeader active="assistant" />
-        <main className="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-4 text-black/55 dark:text-white/60">
+        <main className="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-4 text-black/55">
           <Spinner className="mr-2" />
           Loading assistant
         </main>
