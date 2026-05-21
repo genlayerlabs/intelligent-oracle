@@ -207,16 +207,16 @@ type WindowWithEthereum = Window & {
 
 function PrivyConfigError() {
   return (
-    <div className="brand-app-shell flex min-h-screen items-center justify-center bg-[#f1f0f3] px-6 text-[#2e2e2e] dark:bg-[#0a0a14] dark:text-white">
-      <div className="max-w-lg rounded-md border border-black/10 bg-white/80 p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-black/45 dark:text-white/45">
+    <div className="brand-app-shell flex min-h-screen items-center justify-center bg-[#f1f0f3] px-6 text-[#2e2e2e]">
+      <div className="max-w-lg rounded-md border border-black/10 bg-white/80 p-6 shadow-sm">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-black/45">
           Wallet configuration required
         </p>
-        <h1 className="mt-3 text-2xl font-medium text-black dark:text-white">
+        <h1 className="mt-3 text-2xl font-medium text-black">
           Privy app ID is missing
         </h1>
-        <p className="mt-3 text-sm leading-6 text-black/65 dark:text-white/65">
-          Set <code className="rounded bg-black/5 px-1.5 py-0.5 font-mono dark:bg-white/10">NEXT_PUBLIC_PRIVY_APP_ID</code> in your environment and restart the Next.js dev server.
+        <p className="mt-3 text-sm leading-6 text-black/65">
+          Set <code className="rounded bg-black/5 px-1.5 py-0.5 font-mono">NEXT_PUBLIC_PRIVY_APP_ID</code> in your environment and restart the Next.js dev server.
         </p>
       </div>
     </div>
