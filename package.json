@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "description": "Reference Next.js app for creating, deploying, and monitoring GenLayer intelligent oracles.",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/genlayerlabs/intelligent-oracle.git"

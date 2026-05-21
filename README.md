@@ -133,6 +133,6 @@ Repo URL, owner name, and optional Discord invite are centralized in `src/lib/si
 
 ## License
 
-The application code is MIT licensed — see [`LICENSE`](./LICENSE). Fork it, build your own oracle app, ship it.
+The source code in this repository is MIT licensed — see [`LICENSE`](./LICENSE).
 
-The landing page, `/docs` page, marketing components, brand components, and brand assets in `public/brand/` are **not** MIT — they are covered by [`LICENSE.LANDING`](./LICENSE.LANDING) with all rights reserved, and the GenLayer name/logo are trademarks that you cannot reuse. Forks should strip or replace those files and their branding before deploying.
+The MIT License does not grant rights to GenLayer trademarks, logos, product names, screenshots, brand assets, or marketing copy. Forks and downstream deployments should remove or replace GenLayer branding/content before public use. See [`NOTICE`](./NOTICE).
