@@ -37,14 +37,27 @@ describe("oracle config validation", () => {
     ]);
   });
 
-  it("requires exactly one source strategy", () => {
+  it("requires exactly one source strategy in strict validation", () => {
+    const output = parseOracleConfig({
+      ...validConfig,
+      resolutionURLs: ["https://league.example/result"],
+    });
+
+    expect(output.success).toBe(false);
+    if (output.success) return;
+    expect(output.error.issues.map((issue) => issue.message).join(" ")).toContain("not both");
+  });
+
+  it("normalizes AI drafts that include domains and URLs by keeping domains", () => {
     const output = evaluateOracleConfig({
       ...validConfig,
       resolutionURLs: ["https://league.example/result"],
     });
 
-    expect(output.status).toBe("invalid");
-    expect(output.issues.join(" ")).toContain("not both");
+    expect(output.status).toBe("valid");
+    if (output.status !== "valid") return;
+    expect(output.config.resolutionURLs).toEqual([]);
+    expect(output.config.dataSourceDomains).toEqual(validConfig.dataSourceDomains);
   });
 
   it("rejects incomplete outcomes and invalid dates", () => {
@@ -99,6 +112,37 @@ describe("oracle config validation", () => {
 
     expect(output.status).toBe("invalid");
     expect(output.issues.join(" ")).toContain("after the market event date");
+  });
+
+  it("does not treat archive or settlement deadlines as market event dates", () => {
+    const output = evaluateOracleConfig({
+      ...validConfig,
+      title: "Will New York City record measurable snowfall on 2099-12-25?",
+      description: "Resolve whether Central Park records measurable snowfall on 2099-12-25.",
+      rules: [
+        "Use the measurement reported for calendar date 2099-12-25 local time.",
+        "If agencies revise their totals, use the final archived record as published by 2100-01-02 UTC to settle this market.",
+      ],
+      earliestResolutionDate: "2099-12-26",
+    });
+
+    expect(output.status).toBe("valid");
+  });
+
+  it("does not treat pushed-back resolution dates as market event dates", () => {
+    const output = evaluateOracleConfig({
+      ...validConfig,
+      title: "Will ChatGPT be the #1 free iPhone app in the US App Store at 2099-06-30?",
+      description: "Resolve whether ChatGPT is ranked #1 on the US App Store free iPhone chart on 2099-06-30.",
+      rules: [
+        "Use the official Apple App Store chart for 2099-06-30.",
+        "If the chart is unavailable, use the earliest subsequent date with a published chart by 2099-07-08.",
+      ],
+      dataSourceDomains: ["apps.apple.com"],
+      earliestResolutionDate: "2099-07-08",
+    });
+
+    expect(output.status).toBe("valid");
   });
 
   it("normalizes source domains before deployment", () => {
