@@ -108,7 +108,7 @@ If any of these change, update the GenLayer hooks, deploy script, and Python tes
 - Keep UI client behavior in client components.
 - Do not run deployment commands as routine verification.
 - `.claude/skills/` contains GenLayer-specific workflow notes adapted from `genlayerlabs/skills`; consult them when changing contracts, deployment behavior, or GenLayer testing.
-- Project is dual-licensed (both files Copyright GenLayer Labs). Application code is MIT — see `LICENSE`. Landing/docs/brand assets (`src/app/(marketing)/`, `src/components/marketing/`, `src/components/brand/`, `public/brand/`, `public/icon.svg`) are all-rights-reserved — see `LICENSE.LANDING`. GenLayer name/logos are GenLayer Labs trademarks. Do not add per-file license headers.
+- Source code is MIT licensed — see `LICENSE`. GenLayer trademarks, logos, product names, screenshots, brand assets, and marketing copy are not licensed for reuse without separate permission — see `NOTICE`. Do not add per-file license headers.
 - Brand strings (GitHub URL, owner name, optional Discord) live in `src/lib/site-meta.ts`. Edit that file rather than hardcoding URLs in components or docs.
 
 ## Wizard Invariants (do not regress)

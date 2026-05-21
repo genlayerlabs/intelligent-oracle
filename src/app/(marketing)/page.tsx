@@ -44,7 +44,7 @@ const capabilities = [
   "Validator Consensus",
   "Transparent Explorer",
   "Wallet-Native Deploy",
-  "Open Source · MIT",
+  "Code: MIT",
 ];
 
 const benefits: Array<{
@@ -112,7 +112,7 @@ const features: FeatureCard[] = [
     className: "md:row-span-2",
   },
   {
-    title: "Open Source · MIT",
+    title: "Code: MIT",
     description:
       "The Intelligent Oracle application code is MIT-licensed. Read it, run it locally, or fork it for your own protocol.",
     icon: Braces,

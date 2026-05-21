@@ -91,11 +91,8 @@ Use conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore
 
 ## License
 
-Dual-licensed:
+Source code is MIT licensed — see `LICENSE`.
 
-- **MIT** for the application code — see `LICENSE`.
-- **All rights reserved** for landing/docs/brand assets — see `LICENSE.LANDING`. Covered paths: `src/app/(marketing)/`, `src/components/marketing/`, `src/components/brand/`, `public/brand/`, `public/icon.svg`.
-
-Copyright in both license files is held by GenLayer Labs; the GenLayer name/logos are GenLayer Labs trademarks. Do not write "GenLayer Foundation" or "YeagerAI" as copyright holders anywhere.
+GenLayer trademarks, logos, product names, screenshots, brand assets, and marketing copy are not licensed for reuse without separate permission — see `NOTICE`. Do not write "GenLayer Foundation" or "YeagerAI" as copyright holders anywhere.
 
 Do not add per-file license headers. Brand/URL constants live in `src/lib/site-meta.ts` — edit there rather than hardcoding in components.
