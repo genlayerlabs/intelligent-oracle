@@ -13,7 +13,8 @@ An Intelligent Oracle is a GenLayer prediction-market contract whose outcome is 
 2. **Validate** — confirm the config matches the strict schema below.
 3. **Deploy** — call `create_new_prediction_market` on the public factory contract. This is the parent transaction.
 4. **Resolve the child address** — the factory deploys a fresh oracle contract whose address comes back via a *triggered child transaction*, not the parent receipt. You must poll for the child tx.
-5. **Check later** — read `get_status()` on the oracle address. When status is `"Resolved"` or `"Error"`, settlement is final.
+5. **Verify** — read `get_dict()` on the new oracle address immediately. Compare `title`, `potential_outcomes`, and `earliest_resolution_date` against the submitted config; only report success if they match.
+6. **Monitor** — read `get_status()` periodically. When status is `"Resolved"` or `"Error"`, settlement is final.
 
 ## Network and factory address
 
@@ -79,7 +80,7 @@ This is the same prompt the hosted assistant runs on. Follow it verbatim — the
 - **Date-in-question handling.** If the user includes a date in the market question, use that date as the *event* date and set `earliestResolutionDate` to the **next calendar day** — unless the result is only available later or the user explicitly gave a different resolution date.
 - **Treat user specifics as accepted.** If the user gives a numeric threshold, named asset, team, candidate, company, venue, event, or deadline, use it as-is. Don't second-guess.
 - **Binary outcomes only.** If the user lists three or more outcomes, convert to a single Yes/No question yourself and draft. Only ask if the conversion is genuinely ambiguous.
-- **Never invent a source.** If the user supplies a specific source domain or URL, use it. Otherwise pick from the verified source list below — **never invent a source that is not on this list**. The live catalog at `https://gym.genlayer.foundation/api/benchmarks/sources-bench/sources` is authoritative; if it marks a host as `BLOCKED` or `REROUTE`, follow the catalog over the editorial defaults.
+- **Never invent a source.** If the user supplies a specific source domain or URL, use it. Otherwise pick from the verified source list below — **never invent a source that is not on this list**. The live catalog at `https://gym.genlayer.foundation/api/benchmarks/sources-bench/sources` is authoritative for *known* hosts: if it marks a host as `BLOCKED`, drop it; if it surfaces a `REROUTE` (alternative) pair, draft with the right-hand alternative and explain the swap in your reply. **An editorial default that does not appear in the catalog at all is still valid** — the catalog is a known-host registry, not an allowlist.
 - **Refinement requests are commitments, not questions.** *"Add another source domain"*, *"Tighten the resolution rule"*, *"Push the resolution date back a week"* mean: pick a specific change yourself (add another verified source, tighten the rule with concrete language, shift the date by a week) and re-draft. Don't ask the user which one — they'll edit if they want something different.
 - **Date math against today.** Treat the current date as authoritative; your training-data sense of "now" is stale. Resolve relative phrases before drafting:
   - *"this coming Christmas Day"* / *"next Christmas"* → the next Dec 25 on or after today.
@@ -87,6 +88,7 @@ This is the same prompt the hosted assistant runs on. Follow it verbatim — the
   - *"next FIFA World Cup / Olympics / election"* → the nearest future edition. If you're not certain of the exact final date, pick the published event end date (or the day after) and say so in your reply.
   - *"this year"* / *"end of the year"* → Dec 31 of the current year, unless that's already past, in which case use the next year.
   - *"in N days/weeks/months"* → add to today using calendar arithmetic.
+  - **Prepositions on a target date.** *"by X"* / *"on or before X"* / *"before end of X"* → event date = X. *"before X"* (strict) → event date = day-before-X. Either way, `earliestResolutionDate` is the calendar day after the event date.
   - Never emit an `earliestResolutionDate` on or before today.
 - **Concise, professional copy.** No emoji or decorative symbols.
 - **No infra talk.** Don't mention internal SDKs, model providers, model names, infrastructure, or implementation details (LLMs, "GenVM", validators, consensus mechanics).
@@ -130,7 +132,7 @@ Editorial defaults — use these unless the user names a specific source. For to
 - **Maritime / port activity** → `portwatch.imf.org`.
 - **Politics / elections** → prefer the national electoral authority; fall back to `apnews.com`.
 
-The live verified catalog lives at `https://gym.genlayer.foundation/api/benchmarks/sources-bench/sources`. If that catalog marks a host as `BLOCKED` or `REROUTE`, follow the catalog over this list.
+The live verified catalog lives at `https://gym.genlayer.foundation/api/benchmarks/sources-bench/sources`. If it marks a host as `BLOCKED`, drop it. If it surfaces a `REROUTE` pair, swap to the alternative. If an editorial default above isn't listed at all, use it anyway — the catalog is a known-host registry, not an allowlist.
 
 ## Three worked examples
 
@@ -217,8 +219,9 @@ import { TransactionStatus } from "genlayer-js/types";
 const client = createClient({
   chain: studionet,
   endpoint: "https://studio.genlayer.com/api",
-  // Node: account = createAccount(process.env.PRIVATE_KEY)
-  // Browser (wallet-signed): account = walletAddress, provider = injected provider
+  // Node: createAccount(process.env.PRIVATE_KEY). If PRIVATE_KEY is unset,
+  //   createAccount() generates an ephemeral key — fine for studionet, which is free.
+  // Browser (wallet-signed): account = walletAddress, provider = injected provider.
   account: createAccount(process.env.PRIVATE_KEY),
 });
 
@@ -259,7 +262,19 @@ const childReceipt = await client.waitForTransactionReceipt({
 const oracleAddress =
   childReceipt.txDataDecoded?.contractAddress ??
   childReceipt.data?.contract_address;
+
+// Verify deployment immediately — confirm the factory wrote what you submitted
+// before reporting success to the user.
+const deployed = await client.readContract({
+  address: oracleAddress,
+  functionName: "get_dict",
+  args: [],
+});
+// Compare deployed.title, deployed.potential_outcomes, and
+// deployed.earliest_resolution_date against your config.
 ```
+
+Log only `parentHash`, `childHash`, `oracleAddress`, and a small subset of `deployed` (e.g. `title`, `potential_outcomes`, `earliest_resolution_date`) — full transaction receipts include large consensus and validator payloads that bloat agent contexts.
 
 ### Raw JSON-RPC (non-JS agents)
 
