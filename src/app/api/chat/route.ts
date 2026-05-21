@@ -69,6 +69,16 @@ export async function POST(request: Request) {
     model: openrouter.chat(model),
     system: buildInitialPrompt({ sourcesCatalogBlock }),
     messages: await convertToModelMessages(body.messages),
+    maxOutputTokens: 1800,
+    providerOptions: {
+      openrouter: {
+        reasoning: {
+          effort: "minimal",
+          exclude: true,
+        },
+      },
+    },
+    toolChoice: { type: "tool", toolName: "proposeOracleConfig" },
     tools: {
       proposeOracleConfig: tool({
         description: "Validate and present the complete oracle configuration.",

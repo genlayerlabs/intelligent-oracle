@@ -53,7 +53,7 @@
     "streamdown": "^2.5.0",
     "tailwind-merge": "^3.5.0",
     "use-stick-to-bottom": "^1.1.4",
-    "viem": "2.47.12",
+    "viem": "2.48.11",
     "wagmi": "^2.19.5",
     "zod": "^4.4.3"
   },

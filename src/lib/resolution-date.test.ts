@@ -4,6 +4,7 @@ import {
   getResolutionUnlockDate,
   isResolutionLocked,
   latestIsoDateFromText,
+  latestMarketEventIsoDateFromText,
   utcDateOnly,
 } from "@/lib/resolution-date";
 
@@ -47,6 +48,20 @@ describe("date extraction", () => {
 
   it("finds the latest explicit ISO date from market text", () => {
     expect(latestIsoDateFromText(["First 2026-06-30", "Then 2026-07-15"])).toBe("2026-07-15");
+  });
+
+  it("ignores settlement and archive dates when extracting market event dates", () => {
+    expect(latestMarketEventIsoDateFromText([
+      "Use the measurement reported for calendar date 2026-12-25 local time.",
+      "Use the final archived record as published by 2027-01-02 UTC to settle this market.",
+    ])).toBe("2026-12-25");
+  });
+
+  it("ignores resolution-date guidance when extracting market event dates", () => {
+    expect(latestMarketEventIsoDateFromText([
+      "Will ChatGPT be the #1 free iPhone app on the US App Store at 2026-06-30?",
+      "If the chart is unavailable, use the earliest subsequent date with a published chart by 2026-07-08.",
+    ])).toBe("2026-06-30");
   });
 
   it("uses the later of earliest resolution and day-after-event", () => {

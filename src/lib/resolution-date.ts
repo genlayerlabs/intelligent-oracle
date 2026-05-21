@@ -32,6 +32,31 @@ export function latestIsoDateFromText(values: Array<string | null | undefined>):
   return latest;
 }
 
+const NON_EVENT_DATE_SEGMENT =
+  /\b(archive|archived|deadline|earliest|published|posting|resolution|revised|revision|settle|settled|settlement|subsequent)\b/i;
+
+function textSegments(value: string): string[] {
+  return value
+    .split(/(?<=[.!?])\s+/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+}
+
+export function latestMarketEventIsoDateFromText(values: Array<string | null | undefined>): string | undefined {
+  let latest: string | undefined;
+
+  for (const value of values) {
+    if (!value) continue;
+    for (const segment of textSegments(value)) {
+      if (NON_EVENT_DATE_SEGMENT.test(segment)) continue;
+      const candidate = latestIsoDateFromText([segment]);
+      if (candidate && (!latest || candidate > latest)) latest = candidate;
+    }
+  }
+
+  return latest;
+}
+
 export function getResolutionUnlockDate({
   earliestResolutionDate,
   eventDateTexts = [],

@@ -1,6 +1,6 @@
 import { z, type ZodError } from "zod";
 import { normalizeSourceDomain } from "@/lib/evidence-url";
-import { isIsoDateOnly, latestIsoDateFromText, utcDateOnly } from "@/lib/resolution-date";
+import { isIsoDateOnly, latestMarketEventIsoDateFromText, utcDateOnly } from "@/lib/resolution-date";
 
 const optionalTrimmedString = z.string().trim().optional();
 
@@ -55,7 +55,7 @@ export const oracleConfigSchema = z.object({
     });
   }
 
-  const latestEventDate = latestIsoDateFromText([
+  const latestEventDate = latestMarketEventIsoDateFromText([
     config.title,
     config.description,
     ...config.rules,
@@ -101,7 +101,7 @@ export const oracleConfigDraftSchema = z.object({
   }
 
   const earliestResolutionDate = config.earliestResolutionDate?.trim();
-  const latestEventDate = latestIsoDateFromText([
+  const latestEventDate = latestMarketEventIsoDateFromText([
     config.title,
     config.description,
     ...(config.rules ?? []),
@@ -130,7 +130,9 @@ export function parseOracleDraft(input: unknown) {
 }
 
 export function evaluateOracleConfig(input: unknown) {
-  const parsed = parseOracleConfig(input);
+  const parsedCandidate = oracleConfigCandidateSchema.safeParse(input);
+  const candidate = parsedCandidate.success ? normalizeAiCandidate(parsedCandidate.data) : input;
+  const parsed = parseOracleConfig(candidate);
   if (parsed.success) {
     return {
       status: "valid" as const,
@@ -143,6 +145,18 @@ export function evaluateOracleConfig(input: unknown) {
     status: "invalid" as const,
     config: undefined,
     issues: parsed.error.issues.map(formatIssue),
+  };
+}
+
+function normalizeAiCandidate(candidate: z.infer<typeof oracleConfigCandidateSchema>) {
+  const hasDomains = (candidate.dataSourceDomains ?? []).some((value) => value.trim());
+  const hasResolutionURLs = (candidate.resolutionURLs ?? []).some((value) => value.trim());
+
+  if (!hasDomains || !hasResolutionURLs) return candidate;
+
+  return {
+    ...candidate,
+    resolutionURLs: [],
   };
 }
 
