@@ -1,0 +1,72 @@
+name: "CodeQL security scanning"
+
+on:
+  push:
+    # branches: main, codeql # TODO: remove codeql branch after testing
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sunday at midnight
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript-typescript' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+          config-file: ./.github/codeql/typescript-config.yml
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Explicitly build the frontend projects to ensure CodeQL can analyze them
+      - name: Install Dependencies for UI Wizard
+        working-directory: ./ui-wizard
+        run: npm install
+
+      - name: Install Dependencies for Explorer
+        working-directory: ./explorer
+        run: npm install
+
+      - name: Install Dependencies for Bridge
+        working-directory: ./bridge
+        run: npm install
+
+      - name: Build UI Wizard
+        working-directory: ./ui-wizard
+        run: npm run dev
+
+      - name: Build Explorer
+        working-directory: ./explorer
+        run: npm run dev
+
+      - name: Build Bridge
+        working-directory: ./bridge
+        run: npm run dev
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
