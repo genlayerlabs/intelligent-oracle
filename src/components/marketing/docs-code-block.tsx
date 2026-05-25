@@ -18,10 +18,10 @@ interface DocsCodeBlockProps {
 }
 
 const DOCS_CODE_BLOCK_CLASS_NAME =
-  "min-w-0 [&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere] sm:[&_pre]:whitespace-pre sm:[&_pre]:[overflow-wrap:normal]";
+  "docs-code-block min-w-0";
 
 const FALLBACK_PRE_CLASS_NAME =
-  "m-0 overflow-auto whitespace-pre-wrap p-4 text-sm [overflow-wrap:anywhere] sm:whitespace-pre sm:[overflow-wrap:normal]";
+  "m-0 overflow-auto p-4 text-sm";
 
 export function DocsCodeBlock({ code, language, title }: DocsCodeBlockProps) {
   const [mounted, setMounted] = useState(false);
@@ -32,7 +32,7 @@ export function DocsCodeBlock({ code, language, title }: DocsCodeBlockProps) {
 
   if (!mounted) {
     return (
-      <div className="group relative w-full min-w-0 overflow-hidden rounded-md border bg-background text-foreground" data-language={language}>
+      <div className="docs-code-block group relative w-full min-w-0 overflow-hidden rounded-md border bg-background text-foreground" data-language={language}>
         <div className="flex items-center justify-between border-b bg-muted/80 px-3 py-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <Code2 className="size-4" aria-hidden />
