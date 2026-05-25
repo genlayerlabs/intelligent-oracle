@@ -226,7 +226,7 @@ function ForkStep({
       <div className="flex size-12 items-center justify-center rounded-md bg-[#9733fa1a] text-lg font-medium text-[#9733fa]">
         {number}
       </div>
-      <div className="flex flex-col gap-4 text-base font-light leading-7 text-black/65">
+      <div className="flex min-w-0 flex-col gap-4 text-base font-light leading-7 text-black/65">
         <h3 className="text-xl font-medium leading-tight text-black">{title}</h3>
         {children}
       </div>

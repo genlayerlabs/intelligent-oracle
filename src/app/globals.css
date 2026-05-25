@@ -118,6 +118,18 @@ pre {
   font-family: var(--font-mono);
 }
 
+.docs-code-block pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+  .docs-code-block pre {
+    white-space: pre;
+    overflow-wrap: normal;
+  }
+}
+
 ::selection {
   background: color-mix(in oklab, var(--color-primary) 18%, transparent);
 }
